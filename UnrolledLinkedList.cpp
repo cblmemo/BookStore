@@ -26,9 +26,7 @@ Element &Element::operator=(const Element &o) {
     return *this;
 }
 
-Block::Block() : next(-1), pre(-1), length(0) {
-
-}
+Block::Block() : next(-1), pre(-1), length(0) {}
 
 int UnrolledLinkedList::nextBlock(int offset) {
     //the reason using fin.nextBlock: same fstream object cannot open if it was opened.
@@ -44,7 +42,6 @@ int UnrolledLinkedList::nextBlock(int offset) {
 void UnrolledLinkedList::mergeBlock(int offset1, int offset2) {
     //presume offset1 < offset2, which means block 1 is before block 2
     //delete block 2
-    
     fin.open(filename, ios::in | ios::binary);
     fout.open(filename, ios::in | ios::out | ios::binary);
     if ((!fin) | (!fout))cerr << "[Error] File open failed in \"UnrolledLinkedList::mergeBlock\"." << endl;
@@ -55,7 +52,6 @@ void UnrolledLinkedList::mergeBlock(int offset1, int offset2) {
     fin.read(reinterpret_cast<char *>(&tempBlock1), sizeof(Block));
     fin.seekg(offset2);
     fin.read(reinterpret_cast<char *>(&tempBlock2), sizeof(Block));
-    
     //o1->next=o2->next;
     tempBlock1.next = tempBlock2.next;
     //o2->next->pre=o1;
@@ -63,10 +59,8 @@ void UnrolledLinkedList::mergeBlock(int offset1, int offset2) {
         fout.seekp(tempBlock2.next + sizeof(int));
         fout.write(reinterpret_cast<const char *>(&offset1), sizeof(int));
     }
-    
     for (int i = 0; i < tempBlock2.length; i++)tempBlock1.array[i + tempBlock1.length] = tempBlock2.array[i];
     tempBlock1.length += tempBlock2.length;
-    
     fout.seekp(offset1);
     fout.write(reinterpret_cast<const char *>(&tempBlock1), sizeof(Block));
     
@@ -82,7 +76,6 @@ void UnrolledLinkedList::splitBlock(int offset) {
     fin.seekg(0, ios::end);
     int temp = fin.tellg();
     Block thisBlock, tempBlock;
-    
     fin.seekg(offset);
     fin.read(reinterpret_cast<char *>(&thisBlock), sizeof(Block));
     
@@ -99,7 +92,6 @@ void UnrolledLinkedList::splitBlock(int offset) {
     thisBlock.next = temp;
     
     for (int i = SPLIT_REMAIN; i < BLOCK_SIZE; i++) tempBlock.array[i - SPLIT_REMAIN] = thisBlock.array[i];
-    
     thisBlock.length = SPLIT_REMAIN;
     tempBlock.length = BLOCK_SIZE - SPLIT_REMAIN;
     
@@ -138,10 +130,8 @@ void UnrolledLinkedList::findElement(const string &key, vector<int> &result) {
         fin.seekg(cur);
         fin.read(reinterpret_cast<char *>(&tempBlock), sizeof(Block));
         Element tempElement(-1, key);
-        
         int len = tempBlock.length;
         int pos = lower_bound(tempBlock.array, tempBlock.array + len, tempElement) - tempBlock.array;
-        
         for (int i = pos; i < len; i++) {
             if (strcmp(tempBlock.array[i].key, _key) < 0) break;
             if (strcmp(tempBlock.array[i].key, _key) == 0) {

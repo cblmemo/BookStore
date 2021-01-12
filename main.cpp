@@ -49,7 +49,6 @@ int main() {
         ull.deleteElement(temp_ele);
         //ull.printList();
         if (i % (TEST_SIZE/100) == 1)cout << i << endl;
-        //cout << i << endl;
     }
     
     for (int i = 0; i < TEST_SIZE; i++) {
