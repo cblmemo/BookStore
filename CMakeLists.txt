@@ -3,7 +3,7 @@ project(BookStore)
 
 set(CMAKE_CXX_STANDARD 14)
 
-add_executable(BookStore main.cpp
+add_executable(BookStore src/main.cpp
         src/UnrolledLinkedList.cpp src/UnrolledLinkedList.h
         src/BookManager.cpp src/BookManager.h
         src/UserManager.cpp src/UserManager.h
