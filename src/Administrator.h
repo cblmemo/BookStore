@@ -5,6 +5,8 @@
 #ifndef BOOKSTORE_ADMINISTRATOR_H
 #define BOOKSTORE_ADMINISTRATOR_H
 
+#include "BookStoreHeader.h"
+
 class Administrator{
 public:
     void runProgramme();

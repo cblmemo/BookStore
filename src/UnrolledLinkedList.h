@@ -66,7 +66,7 @@ private:
     void splitBlock(int offset);
 
 public:
-    explicit UnrolledLinkedList(const string &_filename) : filename(_filename) {}
+    explicit UnrolledLinkedList(const string &_filename) : filename(_filename){}
     
     void findElement(const string &key, vector<int> &result);
     

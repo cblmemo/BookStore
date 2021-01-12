@@ -1,7 +1,6 @@
-#include <iostream>
 #include "Administrator.h"
 
-#define mainProgramme
+//#define mainProgramme
 #ifdef mainProgramme
 int main(){
     Administrator Libro;
@@ -9,26 +8,24 @@ int main(){
 }
 #endif //mainProgramme
 
-//#define testUnrolledLinkedList
+#define testUnrolledLinkedList
 #ifdef testUnrolledLinkedList
-#include "UnrolledLinkedList.h"
 #include <cstdlib>
 #include <map>
 
+using namespace std;
+
 #define TEST_SIZE 10000
 
-fstream fs;
+fstream fs_test;
 
-void initialize() {
-    fs.open("test.dat", ios::out | ios::binary);
-    if (!fs)cerr << "[Error] File open failed in \"initialize()\"." << endl;
-    Block temp;
-    fs.write(reinterpret_cast<const char *>(&temp), sizeof(Block));
-    fs.close();
+void initialize_() {
+    fs_test.open("test.dat", ios::out | ios::binary);
+    fs_test.close();
 }
 
 int main() {
-    initialize();
+    initialize_();
     map<string, vector<int>> save;
     UnrolledLinkedList ull("test.dat");
     vector<string> test_vec;

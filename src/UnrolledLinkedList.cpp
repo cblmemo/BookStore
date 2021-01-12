@@ -152,6 +152,12 @@ void UnrolledLinkedList::addElement(const Element &o) {
     fout.open(filename, ios::in | ios::out | ios::binary);
     if ((!fin) | (!fout))cerr << "[Error] File open failed in \"UnrolledLinkedList::addElement\"." << endl;
     
+    fin.seekg(0,ios::end);
+    if(fin.tellg()==0){
+        Block temp;
+        fout.write(reinterpret_cast<const char *>(&temp), sizeof(Block));
+    }
+    
     fin.seekg(0);
     int cur = fin.tellg();
     int next = nextBlock(cur);
