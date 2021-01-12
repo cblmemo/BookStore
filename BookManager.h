@@ -9,6 +9,7 @@
 
 using std::cout;
 using std::endl;
+using std::string;
 
 class Book {
 private:
@@ -25,11 +26,14 @@ public:
     }
 };
 
-class Administrator{
-public:
-    void runProgramme();
-};
+void selectBook(string ISBN);
 
+void modify();//todo arguments
 
+void import(int quantity, double cost);
+
+void buy(string ISBN, int quantity);
+
+void show(string argument = "");
 
 #endif //BOOKSTORE_BOOKMANAGER_H

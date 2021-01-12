@@ -2,6 +2,8 @@
 // Created by Rainy Memory on 2021/1/12.
 //
 
+//This Version is slower (do not use binary search, addressing many times) and longer.
+
 #ifndef BOOKSTORE_UNROLLEDLINKEDLIST_OLDVERSION_H
 #define BOOKSTORE_UNROLLEDLINKEDLIST_OLDVERSION_H
 

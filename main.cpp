@@ -1,12 +1,19 @@
 #include <iostream>
-#include "UnrolledLinkedList.h"
-#include "BookManager.h"
+#include "BookStore.h"
 
 using namespace std;
 
-#define testUnrolledLinkedList
+#define mainProgramme
+#ifdef mainProgramme
+int main(){
+    Administrator Libro;
+    Libro.runProgramme();
+}
+#endif //mainProgramme
 
+//#define testUnrolledLinkedList
 #ifdef testUnrolledLinkedList
+#include "UnrolledLinkedList.h"
 #include <cstdlib>
 #include <map>
 
