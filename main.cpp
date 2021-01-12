@@ -1,7 +1,5 @@
 #include <iostream>
-#include "BookStore.h"
-
-using namespace std;
+#include "Administrator.h"
 
 #define mainProgramme
 #ifdef mainProgramme

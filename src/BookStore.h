@@ -5,11 +5,14 @@
 #ifndef BOOKSTORE_BOOKSTORE_H
 #define BOOKSTORE_BOOKSTORE_H
 
-#include "CommandManager.h"
+void initialize();
 
-class Administrator{
-public:
-    void runProgramme();
-};
+void showFinance(int times=-1);
+
+void reportFinance();
+
+void reportMyself();
+
+void log();
 
 #endif //BOOKSTORE_BOOKSTORE_H

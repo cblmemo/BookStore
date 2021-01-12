@@ -17,7 +17,3 @@ double totalIncome;
 //temporaryData:
 vector<UserAccount> accountStack;
 int chosenBookOffset;
-
-void Administrator::runProgramme() {
-
-}
