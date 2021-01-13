@@ -6,6 +6,6 @@ set(CMAKE_CXX_STANDARD 14)
 add_executable(BookStore src/main.cpp
         src/UnrolledLinkedList.cpp src/UnrolledLinkedList.h
         src/Administrator.cpp src/Administrator.h
-        src/Exception.cpp src/Exception.h
         src/BookStoreHeader.h src/BookStore.cpp
-        src/CommandManager.cpp src/FileManager.cpp)
+        src/CommandManager.cpp src/FileManager.cpp
+        src/MyException.hpp testUnrolledLinkedList.cpp)

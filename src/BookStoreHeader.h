@@ -6,18 +6,33 @@
 #define BOOKSTORE_BOOKSTOREHEADER_H
 
 #include "UnrolledLinkedList.h"
-#include "Exception.h"
+#include "MyException.hpp"
+#include <sstream>
+
+using std::stringstream;
+using std::cin;
+
+//file name
+#define LOG_FILENAME "log.dat"
+#define BILL_FILENAME "bill.dat"
 
 #define BASIC_DATA_FILENAME "basicData.dat"
 #define USER_DATA_FILENAME "userData.dat"
 #define BOOK_DATA_FILENAME "bookData.dat"
 
-//enum type:-----------\/
+#define INDEX_USERID_FILENAME "indexUserID.dat"
+#define INDEX_ISBN_FILENAME "indexISBN.dat"
+#define INDEX_AUTHOR_FILENAME "indexAuthor.dat"
+#define INDEX_NAME_FILENAME "indexName.dat"
+#define INDEX_KEYWORD_FILENAME "indexKeyWord.dat"
 
-enum commandType {
-    SU, LOGOUT, USERADD, REGISTER, DELETE, PASSWD, SELECT, MODIFY, IMPORT,
-    SHOW, SHOWFINANCE, BUY, REPORTFINANCE, REPORTEMPLOYEE, REPORTMYSELF, LOG
-};
+//error message
+#define REMAINS_ERROR_MESSAGE "redundant information"//all
+#define INEXISTENT_ACCOUNT_MESSAGE "account doesn't exist"//su
+#define INADEQUATE_AUTHORITY_MESSAGE "inadequate authority"//su
+#define NO_USER_LOGIN_NOW_MESSAGE "no user login now"//logout
+
+//enum type:-----------\/
 
 enum basicDataType {
     BOOKNUMBER, TRANSACTION, EXPENSE, INCOME
@@ -34,26 +49,43 @@ enum saveDataType {
 //class:---------------\/
 
 class Book {
-private:
+public:
+    double price = -1;
+    int quantity = 0;
     char ISBN[20] = {0};
     char name[60] = {0};
     char author[60] = {0};
     char keyword[60] = {0};
-    double price = 0;
-    int quantity = 0;
 
 public:
-    void show() const {
-        cout << ISBN << "\t" << name << "\t" << author << "\t" << keyword << "\t" << price << "\t" << quantity << endl;
-    }
+    Book();
+    
+    Book(double _price, int _quantity, string _ISBN, string _name, string _author, string _keyword);
+    
+    void show() const;
 };
 
 class UserAccount {
 public:
-    int authority;
-    char userID[30];
-    char name[30];
-    char password[30];
+    int authority = -1;
+    char userID[30] = {0};
+    char name[30] = {0};
+    char password[30] = {0};
+
+public:
+    UserAccount();
+    
+    UserAccount(int _authority, string _userID, string _name, string _password);
+};
+
+class Entry {
+public:
+    long long time = 0;
+    char userID[30] = {0};
+    char ISBN[20] = {0};
+    int quantity = 0;//positive represent buy, negative represent import
+    double price = 0;
+    double totalPrice = 0;
 };
 
 //class:---------------/\
@@ -62,7 +94,7 @@ public:
 
 //BookStore:-----------\/
 
-void initialize();
+void initialize();//finished
 
 //BookStore:-----------/\
 
@@ -70,15 +102,15 @@ void initialize();
 
 //CommandFunction:-----\/
 
-void stringCheck(commandType type, string cmd);
+string splitKeyWord(string keyWord, vector<string> &result);
 
-string splitString(string &cmd, bool keyWordFlag = false);//delete and return the first word of cmd
+int nowAuthority();
 
-bool privilegeCheck(int requirements);
+bool authorityCheck(int requirements);
 
 void runCommand(string cmd);
 
-void logRecord();
+void logRecord(string logContent, string cmd);
 
 //CommandFunction:-----/\
 
@@ -91,7 +123,7 @@ void reportEmployee();
 
 void reportMyself();
 
-void log();
+void showLog();
 
 //BasicCommand:--------/\
 
@@ -117,9 +149,9 @@ void buy(string ISBN, int quantity);
 
 //UserCommand:---------\/
 
-bool login(string userID, string password = "");
+void login(string userID, string password = "");
 
-bool logout();
+UserAccount logout();//return logout account's user-id
 
 void addAccount(const UserAccount &o);
 

@@ -12,10 +12,9 @@
 // double totalExpense;
 // double totalIncome;
 
-fstream fs;
-
 template<class T>
 void writeBasicData(basicDataType type, T *ptr) {
+    fstream fs;
     int pos;
     switch (type) {
         case BOOKNUMBER:
@@ -39,6 +38,7 @@ void writeBasicData(basicDataType type, T *ptr) {
 
 template<class T>
 void readBasicData(basicDataType type, T *ptr) {
+    fstream fs;
     int pos;
     switch (type) {
         case BOOKNUMBER:
@@ -62,6 +62,7 @@ void readBasicData(basicDataType type, T *ptr) {
 
 template<class T>
 int writeData(saveDataType type, const T &o, int offset) {
+    fstream fs;
     fs.open((type == USER ? USER_DATA_FILENAME : BOOK_DATA_FILENAME), ios::in | ios::out | ios::binary);
     if (offset < 0) {
         fs.seekp(0, ios::end);
@@ -75,6 +76,7 @@ int writeData(saveDataType type, const T &o, int offset) {
 
 template<class T>
 T readData(saveDataType type, int offset) {
+    fstream fs;
     T temp;
     fs.open((type == USER ? USER_DATA_FILENAME : BOOK_DATA_FILENAME), ios::in | ios::binary);
     fs.seekg(offset);

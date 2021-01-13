@@ -16,7 +16,7 @@
 
 #define BLOCK_SIZE 320
 #define SPLIT_REMAIN 160
-#define MAX_KEY_LENGTH 64
+#define MAX_KEY_LENGTH 60
 
 using std::string;
 using std::fstream;
