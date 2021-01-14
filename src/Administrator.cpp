@@ -15,7 +15,7 @@ void Administrator::runProgramme() {
             string logContent;
             if (ex.type == SU) logContent += "[log] Login failed.\n";
             if (ex.type == LOGOUT)logContent += "[log] Logout failed.\n";
-            if(ex.type==)
+            if(ex.type== )
             
             logContent += "Possible reason: " + ex.detail + "\n";
             logRecord(logContent, cmd);
