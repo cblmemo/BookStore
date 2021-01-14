@@ -241,10 +241,10 @@ void runCommand(string cmd) {
 void logRecord(string logContent, string cmd) {
     logContent += "Original command: ";
     logContent += cmd;
-    //logContent += "\n";
-    cout << "[debug] logContent:" << endl;
-    cout << logContent << endl;
-    //todo write in file
+    logContent += "\n";
+    //cerr << "[debug] logContent:" << endl;
+    //cout << logContent << endl;
+    //todo write in file(log in log.dat, command in command.dat)
     //todo operate time
     //todo user name
     //todo arguments
