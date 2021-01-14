@@ -36,8 +36,8 @@ void runCommand(string cmd) {
         string user_id, passwd;
         ss >> user_id >> passwd;
         ss >> remains;
-        if (!remains.empty())throw invalidCommand(SU, REMAINS_ERROR_MESSAGE);
-        if (user_id == "")throw invalidCommand(SU, "missing user-id");
+        if (!remains.empty())throw invalidCommand(SU, REMAINS);
+        if (user_id == "")throw invalidCommand(SU, MISSING, "user-id");
         if (passwd == "") {
             login(user_id);
             logContent += "[log] High authority login successful.\n";
@@ -46,7 +46,7 @@ void runCommand(string cmd) {
         }
         else {
             ss >> remains;
-            if (!remains.empty())throw invalidCommand(SU, REMAINS_ERROR_MESSAGE);
+            if (!remains.empty())throw invalidCommand(SU, REMAINS);
             login(user_id, passwd);
             logContent += "[log] Login successful.\n";
             logContent += "user-id: " + user_id + "\n";
@@ -56,7 +56,7 @@ void runCommand(string cmd) {
     }
     else if (cmdType == "logout") {
         ss >> remains;
-        if (!remains.empty())throw invalidCommand(LOGOUT, REMAINS_ERROR_MESSAGE);
+        if (!remains.empty())throw invalidCommand(LOGOUT, REMAINS);
         UserAccount logoutAccount = logout();
         logContent += "[log] Logout successful.\n";
         logContent += "logout account: \n";
@@ -73,8 +73,13 @@ void runCommand(string cmd) {
         int auth;
         ss >> user_id >> passwd >> _auth >> name;
         ss >> remains;
-        if (!remains.empty())throw invalidCommand(USERADD, REMAINS_ERROR_MESSAGE);
-        if(user_id.empty())
+        if (!remains.empty())throw invalidCommand(USERADD, REMAINS);
+        if (user_id.empty())throw invalidCommand(USERADD, MISSING, "user-id");
+        if (passwd.empty())throw invalidCommand(USERADD, MISSING, "passwd");
+        if (_auth.empty())throw invalidCommand(USERADD, MISSING, "authority");
+        if (name.empty())throw invalidCommand(USERADD, MISSING, "name");
+        if (_auth.size() > 1 || (_auth[0] != '7' && _auth[0] != '3' && _auth[0] != '1'))throw invalidCommand(USERADD, WRONGFORMAT, "authority");
+        
     }
     else if (cmdType == "register") {
     
@@ -119,14 +124,14 @@ void runCommand(string cmd) {
         else if (reportType == "myself") {
         
         }
-        else throw invalidCommand(UNKNOWN, "");
+        else throw invalidCommand(UNKNOWN, UNKNOWNERROR);
     }
     else if (cmdType == "log") {
         ss >> remains;
-        if (!remains.empty())throw invalidCommand(LOG, REMAINS_ERROR_MESSAGE);
+        if (!remains.empty())throw invalidCommand(LOG, REMAINS);
         showLog();
     }
-    else throw invalidCommand(UNKNOWN, "");
+    else throw invalidCommand(UNKNOWN, UNKNOWNERROR);
 }
 
 void logRecord(string logContent, string cmd) {
@@ -201,25 +206,25 @@ void login(string userID, string password) {
     if (password == "") {
         vector<int> possibleOffset;
         indexUserID.findElement(userID, possibleOffset);
-        if (possibleOffset.empty())throw invalidCommand(SU, INEXISTENT_ACCOUNT_MESSAGE);
+        if (possibleOffset.empty())throw invalidCommand(SU, INEXISTACCOUNT);
         UserAccount loginAccount(readData<UserAccount>(USER, possibleOffset[0]));
         int auth = loginAccount.authority;
         if (nowAuthority() > auth) accountStack.push_back(loginAccount);
-        else throw invalidCommand(SU, INADEQUATE_AUTHORITY_MESSAGE);
+        else throw invalidCommand(SU, INADEQUATEAUTHORITY);
     }
     else {
         vector<int> possibleOffset;
         indexUserID.findElement(userID, possibleOffset);
-        if (possibleOffset.empty())throw invalidCommand(SU, INEXISTENT_ACCOUNT_MESSAGE);
+        if (possibleOffset.empty())throw invalidCommand(SU, INEXISTACCOUNT);
         UserAccount loginAccount(readData<UserAccount>(USER, possibleOffset[0]));
         string userPassword = loginAccount.password;
         if (userPassword == password)accountStack.push_back(loginAccount);
-        else throw invalidCommand(SU, "wrong password");
+        else throw invalidCommand(SU, WRONGPASSWORD);
     }
 }
 
 UserAccount logout() {
-    if (accountStack.empty())throw invalidCommand(LOGOUT, NO_USER_LOGIN_NOW_MESSAGE);
+    if (accountStack.empty())throw invalidCommand(LOGOUT, NOUSERLOGIN);
     UserAccount logoutAccount = accountStack[accountStack.size() - 1];
     accountStack.erase(accountStack.end() - 1);
     return logoutAccount;

@@ -8,13 +8,23 @@ enum commandType {
     UNKNOWN
 };
 
+enum errorType {
+    REMAINS, MISSING, WRONGFORMAT,
+    INEXISTACCOUNT,//login
+    INADEQUATEAUTHORITY,//login
+    WRONGPASSWORD,//login
+    NOUSERLOGIN,//logout
+    UNKNOWNERROR
+};
+
 class invalidCommand {
 public:
-    commandType type;
+    commandType cmdType;
+    errorType errType;
     string detail;
 
 public:
-    invalidCommand(commandType _type, const char *_detail) : type(_type) {
+    invalidCommand(commandType _cmdType, errorType _errType, const char *_detail = "") : cmdType(_cmdType), errType(_errType) {
         detail = _detail;
     }
 };

@@ -10,6 +10,7 @@
 class Administrator{
 public:
     void runProgramme();
+    
 };
 
 #endif //BOOKSTORE_ADMINISTRATOR_H

@@ -73,6 +73,7 @@ void initialize() {
         fs.open(INDEX_KEYWORD_FILENAME, ios::out);
         fs.close();
         
+        //create root account
         UserAccount root(7, "root", "root", "sjtu");
         int offset = writeData(USER, root);
         Element temp(offset, "root");

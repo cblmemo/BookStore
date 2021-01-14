@@ -28,8 +28,10 @@ using std::cin;
 
 //error message
 #define REMAINS_ERROR_MESSAGE "redundant information"//all
+#define MISSING_ERROR_MESSAGE "missing "//all
 #define INEXISTENT_ACCOUNT_MESSAGE "account doesn't exist"//su
 #define INADEQUATE_AUTHORITY_MESSAGE "inadequate authority"//su
+#define WRONG_PASSWORD_MESSAGE "wrong password"//su
 #define NO_USER_LOGIN_NOW_MESSAGE "no user login now"//logout
 
 //enum type:-----------\/
@@ -104,7 +106,7 @@ void initialize();//finished
 
 string splitKeyWord(string keyWord, vector<string> &result);
 
-int nowAuthority();
+int nowAuthority();//finished
 
 bool authorityCheck(int requirements);
 
