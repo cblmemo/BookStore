@@ -1,3 +1,9 @@
+//
+// Created by Rainy Memory on 2021/1/14.
+//
+
+#ifndef BOOKSTORE_MYEXCEPTION_H
+#define BOOKSTORE_MYEXCEPTION_H
 #include <string>
 
 using std::string;
@@ -15,6 +21,7 @@ enum errorType {
     WRONGPASSWORD,//login
     NOUSERLOGIN,//logout
     USERALREADYEXIST,//useradd, register
+    DELETEROOTACCOUNT,
     WRONGOLDPASSWORD,//passwd
     UNKNOWNERROR
 };
@@ -34,3 +41,4 @@ public:
         detail = _detail;
     }
 };
+#endif //BOOKSTORE_MYEXCEPTION_H
