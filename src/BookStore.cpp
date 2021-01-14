@@ -54,6 +54,8 @@ void initialize() {
         //create file
         fs.open(LOG_FILENAME, ios::out);
         fs.close();
+        fs.open(COMMAND_FILENAME, ios::out);
+        fs.close();
         fs.open(BILL_FILENAME, ios::out);
         fs.close();
         fs.open(BASIC_DATA_FILENAME, ios::out);
@@ -75,7 +77,7 @@ void initialize() {
         
         //create root account
         UserAccount root(7, "root", "root", "sjtu");
-        int offset = writeData(USER, root);
+        int offset = writeData<UserAccount>(USER, root);
         Element temp(offset, "root");
         indexUserID.addElement(temp);
     }

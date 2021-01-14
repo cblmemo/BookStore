@@ -106,7 +106,7 @@ void runCommand(string cmd) {
         auth = _auth[0] - '0';
         UserAccount _addAccount(auth, user_id, name, passwd);
         addAccount(_addAccount, user_id);
-        logContent += "[log] useradd successful.";
+        logContent += "[log] useradd successful.\n";
         logContent += "add account: \n";
         logContent += "user-id: " + (string) _addAccount.userID + "\n";
         logContent += "passwd: " + (string) _addAccount.password + "\n";
@@ -132,7 +132,7 @@ void runCommand(string cmd) {
         if (!possibleOffset.empty())throw invalidCommand(USERADD, USERALREADYEXIST, user_id);
         UserAccount _registerAccount(1, user_id, name, passwd);
         registerAccount(_registerAccount, user_id);
-        logContent += "[log] register successful.";
+        logContent += "[log] register successful.\n";
         logContent += "register account: \n";
         logContent += "user-id: " + (string) _registerAccount.userID + "\n";
         logContent += "passwd: " + (string) _registerAccount.password + "\n";
@@ -151,7 +151,7 @@ void runCommand(string cmd) {
         if (user_id.size() > 30)throw invalidCommand(DELETE, WRONGFORMAT, "user-id");
         if (!authorityCheck(7))throw invalidCommand(DELETE, INADEQUATEAUTHORITY);
         deleteAccount(user_id);
-        logContent += "[log] delete successful.";
+        logContent += "[log] delete successful.\n";
         logContent += "delete account: \n";
         logContent += "user-id: " + user_id + "\n";
         logRecord(logContent, cmd);
@@ -241,7 +241,9 @@ void runCommand(string cmd) {
 void logRecord(string logContent, string cmd) {
     logContent += "Original command: ";
     logContent += cmd;
-    logContent += "\n";
+    //logContent += "\n";
+    cout << "[debug] logContent:" << endl;
+    cout << logContent << endl;
     //todo write in file
     //todo operate time
     //todo user name
@@ -310,7 +312,7 @@ void login(string userID, string password) {
     if (password == "") {
         vector<int> possibleOffset;
         indexUserID.findElement(userID, possibleOffset);
-        if (possibleOffset.empty())throw invalidCommand(SU, INEXISTACCOUNT);
+        if (possibleOffset.empty())throw invalidCommand(SU, INEXISTACCOUNT, userID);
         UserAccount loginAccount(readData<UserAccount>(USER, possibleOffset[0]));
         int auth = loginAccount.authority;
         if (nowAuthority() > auth) {
@@ -322,7 +324,7 @@ void login(string userID, string password) {
     else {
         vector<int> possibleOffset;
         indexUserID.findElement(userID, possibleOffset);
-        if (possibleOffset.empty())throw invalidCommand(SU, INEXISTACCOUNT);
+        if (possibleOffset.empty())throw invalidCommand(SU, INEXISTACCOUNT, userID);
         UserAccount loginAccount(readData<UserAccount>(USER, possibleOffset[0]));
         string userPassword = loginAccount.password;
         if (userPassword == password) {
@@ -342,21 +344,22 @@ UserAccount logout() {
 }
 
 void addAccount(const UserAccount &o, string userID) {
-    int offset = writeData(USER, o);
+    int offset = writeData<UserAccount>(USER, o);
     Element temp(offset, userID);
     indexUserID.addElement(temp);
 }
 
 void registerAccount(const UserAccount &o, string userID) {
-    int offset = writeData(USER, o);
+    int offset = writeData<UserAccount>(USER, o);
     Element temp(offset, userID);
     indexUserID.addElement(temp);
 }
 
 void deleteAccount(string userID) {
+    if (userID == "root")throw invalidCommand(DELETE, DELETEROOTACCOUNT);
     vector<int> possibleOffset;
     indexUserID.findElement(userID, possibleOffset);
-    if (possibleOffset.empty())throw invalidCommand(DELETE, INEXISTACCOUNT);
+    if (possibleOffset.empty())throw invalidCommand(DELETE, INEXISTACCOUNT, userID);
     Element temp(possibleOffset[0], userID);
     indexUserID.deleteElement(temp);
 }
@@ -364,14 +367,14 @@ void deleteAccount(string userID) {
 void changePassword(string userID, string newPassword, string oldPassword) {
     vector<int> possibleOffset;
     indexUserID.findElement(userID, possibleOffset);
-    if (possibleOffset.empty())throw invalidCommand(PASSWD, INEXISTACCOUNT);
+    if (possibleOffset.empty())throw invalidCommand(PASSWD, INEXISTACCOUNT, userID);
     UserAccount changeAccount = readData<UserAccount>(USER, possibleOffset[0]);
     if (oldPassword != "") {
         string nowPassword = changeAccount.password;
         if (nowPassword != oldPassword)throw invalidCommand(PASSWD, WRONGOLDPASSWORD);
     }
     strcpy(changeAccount.password, newPassword.c_str());
-    writeData(USER, changeAccount, possibleOffset[0]);
+    writeData<UserAccount>(USER, changeAccount, possibleOffset[0]);
 }
 
 //userCommand:---------/\

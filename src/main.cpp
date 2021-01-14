@@ -21,11 +21,12 @@ int main() {
             if (ex.errType == REMAINS) logContent += REMAINS_ERROR_MESSAGE;
             else if (ex.errType == MISSING) logContent += MISSING_ERROR_MESSAGE + ex.detail;
             else if (ex.errType == WRONGFORMAT) logContent += "wrong [" + ex.detail + "] format";
-            else if (ex.errType == INEXISTACCOUNT) logContent += INEXISTENT_ACCOUNT_MESSAGE;
+            else if (ex.errType == INEXISTACCOUNT) logContent += "account [" + ex.detail + "] doesn't exist";
             else if (ex.errType == INADEQUATEAUTHORITY) logContent += INADEQUATE_AUTHORITY_MESSAGE;
             else if (ex.errType == WRONGPASSWORD) logContent += WRONG_PASSWORD_MESSAGE;
             else if (ex.errType == NOUSERLOGIN) logContent += NO_USER_LOGIN_NOW_MESSAGE;
             else if (ex.errType == USERALREADYEXIST) logContent += "user-id: [" + ex.detail + "] already exist.\n";
+            else if (ex.errType == USERALREADYEXIST) logContent += DELETE_ROOT_ACCOUNT_MESSAGE;
             else if (ex.errType == WRONGOLDPASSWORD) logContent += WRONG_OLD_PASSWORD_MESSAGE;
             
             
