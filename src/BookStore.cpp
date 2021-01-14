@@ -12,7 +12,7 @@ double totalIncome;
 
 //temporaryData:
 vector<UserAccount> accountStack;
-int chosenBookOffset;
+vector<int> chosenBookOffsetStack;//-1 represent not select
 
 //UnrolledLinkedList:
 //in userData.dat
@@ -26,10 +26,10 @@ UnrolledLinkedList indexKeyWord(INDEX_KEYWORD_FILENAME);
 Book::Book() {}
 
 Book::Book(double _price, int _quantity, string _ISBN, string _name, string _author, string _keyword) : price(_price), quantity(_quantity) {
-    strcpy(ISBN,_ISBN.c_str());
-    strcpy(name,_name.c_str());
-    strcpy(author,_author.c_str());
-    strcpy(keyword,_keyword.c_str());
+    strcpy(ISBN, _ISBN.c_str());
+    strcpy(name, _name.c_str());
+    strcpy(author, _author.c_str());
+    strcpy(keyword, _keyword.c_str());
 }
 
 void Book::show() const {

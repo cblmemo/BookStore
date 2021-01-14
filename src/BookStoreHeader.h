@@ -31,8 +31,11 @@ using std::cin;
 #define MISSING_ERROR_MESSAGE "missing "//all
 #define INEXISTENT_ACCOUNT_MESSAGE "account doesn't exist"//su
 #define INADEQUATE_AUTHORITY_MESSAGE "inadequate authority"//su
-#define WRONG_PASSWORD_MESSAGE "wrong password"//su
+#define WRONG_PASSWORD_MESSAGE "password wrong"//su
 #define NO_USER_LOGIN_NOW_MESSAGE "no user login now"//logout
+#define WRONG_OLD_PASSWORD_MESSAGE "old password wrong"//passwd
+
+#define UNKNOWN_ERROR_MESSAGE "unknown error"
 
 //enum type:-----------\/
 
@@ -94,15 +97,15 @@ public:
 
 
 
-//BookStore:-----------\/
+//bookStore:-----------\/
 
 void initialize();//finished
 
-//BookStore:-----------/\
+//bookStore:-----------/\
 
 
 
-//CommandFunction:-----\/
+//commandFunction:-----\/
 
 string splitKeyWord(string keyWord, vector<string> &result);
 
@@ -114,11 +117,11 @@ void runCommand(string cmd);
 
 void logRecord(string logContent, string cmd);
 
-//CommandFunction:-----/\
+//commandFunction:-----/\
 
 
 
-//BasicCommand:--------\/
+//basicCommand:--------\/
 void reportFinance();
 
 void reportEmployee();
@@ -127,11 +130,11 @@ void reportMyself();
 
 void showLog();
 
-//BasicCommand:--------/\
+//basicCommand:--------/\
 
 
 
-//BookCommand:---------\/
+//bookCommand:---------\/
 
 void selectBook(string ISBN);
 
@@ -145,25 +148,25 @@ void showFinance(int times = -1);
 
 void buy(string ISBN, int quantity);
 
-//BookCommand:---------/\
+//bookCommand:---------/\
 
 
 
-//UserCommand:---------\/
+//userCommand:---------\/
 
 void login(string userID, string password = "");
 
 UserAccount logout();//return logout account's user-id
 
-void addAccount(const UserAccount &o);
+void addAccount(const UserAccount &o,string userID);
 
-void registerAccount(const UserAccount &o);
+void registerAccount(const UserAccount &o,string userID);
 
 void deleteAccount(string userID);
 
 void changePassword(string userID, string newPassword, string oldPassword = "");
 
-//UserCommand:---------/\
+//userCommand:---------/\
 
 
 

@@ -14,6 +14,8 @@ enum errorType {
     INADEQUATEAUTHORITY,//login
     WRONGPASSWORD,//login
     NOUSERLOGIN,//logout
+    USERALREADYEXIST,//useradd, register
+    WRONGOLDPASSWORD,//passwd
     UNKNOWNERROR
 };
 
@@ -25,6 +27,10 @@ public:
 
 public:
     invalidCommand(commandType _cmdType, errorType _errType, const char *_detail = "") : cmdType(_cmdType), errType(_errType) {
+        detail = _detail;
+    }
+    
+    invalidCommand(commandType _cmdType, errorType _errType, string _detail) : cmdType(_cmdType), errType(_errType) {
         detail = _detail;
     }
 };
