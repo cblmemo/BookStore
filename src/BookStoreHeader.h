@@ -7,7 +7,10 @@
 
 #include "UnrolledLinkedList.h"
 #include "MyException.h"
+
+#include <iomanip>
 #include <sstream>
+#include <ctime>
 
 using std::stringstream;
 using std::cin;
@@ -15,11 +18,13 @@ using std::cin;
 //file name
 #define LOG_FILENAME "log.dat"
 #define COMMAND_FILENAME "command.dat"
+#define STAFF_LOG_FILENAME "staffLog.dat"
 #define BILL_FILENAME "bill.dat"
 
 #define BASIC_DATA_FILENAME "basicData.dat"
 #define USER_DATA_FILENAME "userData.dat"
 #define BOOK_DATA_FILENAME "bookData.dat"
+#define STAFF_DATA_FILENAME "staffData.dat"
 
 #define INDEX_USERID_FILENAME "indexUserID.dat"
 #define INDEX_ISBN_FILENAME "indexISBN.dat"
@@ -29,12 +34,12 @@ using std::cin;
 
 //error message
 #define REMAINS_ERROR_MESSAGE "redundant information"//all
-#define MISSING_ERROR_MESSAGE "missing "//all
 #define INADEQUATE_AUTHORITY_MESSAGE "inadequate authority"//su
 #define WRONG_PASSWORD_MESSAGE "password wrong"//su
 #define NO_USER_LOGIN_NOW_MESSAGE "no user login now"//logout
 #define DELETE_ROOT_ACCOUNT_MESSAGE "cannot delete root account"//delete
 #define WRONG_OLD_PASSWORD_MESSAGE "old password wrong"//passwd
+#define NO_BOOK_SELECTED_MESSAGE "no book was selected"//modify, import
 
 #define UNKNOWN_ERROR_MESSAGE "unknown error"
 
@@ -48,6 +53,10 @@ enum saveDataType {
     USER, BOOK
 };
 
+enum argumentType {
+    ISBN_, NAME_, AUTHOR_, KEYWORD_, PRICE_, INVALID_
+};
+
 //enum type:-----------/\
 
 
@@ -56,7 +65,7 @@ enum saveDataType {
 
 class Book {
 public:
-    double price = -1;
+    double price = 0;
     int quantity = 0;
     char ISBN[20] = {0};
     char name[60] = {0};
@@ -86,7 +95,7 @@ public:
 
 class Entry {
 public:
-    long long time = 0;
+    time_t time;
     char userID[30] = {0};
     char ISBN[20] = {0};
     int quantity = 0;//positive represent buy, negative represent import
@@ -108,15 +117,29 @@ void initialize();//finished
 
 //commandFunction:-----\/
 
-string splitKeyWord(string keyWord, vector<string> &result);
+void splitKeyWord(string keyWordStr, vector<string> &keyWord);
 
-int nowAuthority();//finished
+argumentType getArgumentType(commandType type, string argument);
 
-bool authorityCheck(int requirements);
+void deleteArgumentType(string &argument, argumentType type, commandType _type);
+
+int nowSelected();
+
+int nowAuthority();
+
+void authorityCheck(int requirements, commandType type);
+
+void argumentCheck(string argument, string argumentName, commandType type, int maxsize);
 
 void runCommand(string cmd);
 
-void logRecord(string logContent, string cmd);
+void staffRecord(const string &userID);
+
+void getStaff(vector<string> &staff);
+
+void logRecord(string logContent, const string &cmd);
+
+void staffLogRecord(const string &type, const string &arguments);
 
 //commandFunction:-----/\
 
@@ -127,7 +150,7 @@ void reportFinance();
 
 void reportEmployee();
 
-void reportMyself();
+void reportMyself(string userID);
 
 void showLog();
 
@@ -137,13 +160,9 @@ void showLog();
 
 //bookCommand:---------\/
 
-void selectBook(string ISBN);
-
-void modify(string arguments);
+void selectBook(const string &ISBN);
 
 void import(int quantity, double cost);
-
-void show(string argument = "");
 
 void showFinance(int times = -1);
 
@@ -155,17 +174,17 @@ void buy(string ISBN, int quantity);
 
 //userCommand:---------\/
 
-void login(string userID, string password = "");
+void login(const string &userID, const string &password = "");
 
 UserAccount logout();//return logout account's user-id
 
-void addAccount(const UserAccount &o, string userID);
+void addAccount(const UserAccount &o, const string &userID);
 
-void registerAccount(const UserAccount &o, string userID);
+void registerAccount(const UserAccount &o, const string &userID);
 
-void deleteAccount(string userID);
+void deleteAccount(const string &userID);
 
-void changePassword(string userID, string newPassword, string oldPassword = "");
+void changePassword(const string &userID, const string &newPassword, const string &oldPassword = "");
 
 //userCommand:---------/\
 
@@ -180,7 +199,7 @@ void changePassword(string userID, string newPassword, string oldPassword = "");
 // double totalIncome;
 
 template<class T>
-void writeBasicData(basicDataType type, T *ptr) {
+void writeBasicData(basicDataType type, const T &o) {
     fstream fs;
     int pos;
     switch (type) {
@@ -199,12 +218,13 @@ void writeBasicData(basicDataType type, T *ptr) {
     }
     fs.open(BASIC_DATA_FILENAME, ios::in | ios::out | ios::binary);
     fs.seekp(pos);
-    fs.write(reinterpret_cast<const char *>(ptr), sizeof(T));
+    fs.write(reinterpret_cast<const char *>(&o), sizeof(T));
     fs.close();
 }
 
 template<class T>
-void readBasicData(basicDataType type, T *ptr) {
+T readBasicData(basicDataType type) {
+    T save;
     fstream fs;
     int pos;
     switch (type) {
@@ -223,8 +243,9 @@ void readBasicData(basicDataType type, T *ptr) {
     }
     fs.open(BASIC_DATA_FILENAME, ios::in | ios::binary);
     fs.seekg(pos);
-    fs.read(reinterpret_cast<char *>(ptr), sizeof(T));
+    fs.read(reinterpret_cast<char *>(&save), sizeof(T));
     fs.close();
+    return save;
 }
 
 template<class T>

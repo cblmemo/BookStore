@@ -4,6 +4,7 @@
 
 #ifndef BOOKSTORE_MYEXCEPTION_H
 #define BOOKSTORE_MYEXCEPTION_H
+
 #include <string>
 
 using std::string;
@@ -23,10 +24,11 @@ enum errorType {
     USERALREADYEXIST,//useradd, register
     DELETEROOTACCOUNT,
     WRONGOLDPASSWORD,//passwd
+    NOBOOKSELECTED,//modify, import
     UNKNOWNERROR
 };
 
-class invalidCommand {
+class invalidCommand : public std::exception {
 public:
     commandType cmdType;
     errorType errType;
@@ -41,4 +43,5 @@ public:
         detail = _detail;
     }
 };
+
 #endif //BOOKSTORE_MYEXCEPTION_H

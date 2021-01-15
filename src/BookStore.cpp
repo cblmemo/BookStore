@@ -4,7 +4,7 @@
 
 #include "BookStoreHeader.h"
 
-//basicData:(in basicData.dat)
+//basicData: (in basicData.dat)
 int bookNumber;
 int totalTransaction;
 double totalExpense;
@@ -12,7 +12,7 @@ double totalIncome;
 
 //temporaryData:
 vector<UserAccount> accountStack;
-vector<int> chosenBookOffsetStack;//-1 represent not select
+vector<int> selectedBookOffsetStack;//-1 represent not select
 
 //UnrolledLinkedList:
 //in userData.dat
@@ -33,7 +33,7 @@ Book::Book(double _price, int _quantity, string _ISBN, string _name, string _aut
 }
 
 void Book::show() const {
-    cout << ISBN << "\t" << name << "\t" << author << "\t" << keyword << "\t" << price << "\t" << quantity << endl;
+    cout << ISBN << "\t" << name << "\t" << author << "\t" << keyword << "\t" << std::setiosflags(ios::fixed) << std::setprecision(2) << price << "\t" << quantity << endl;
 }
 
 UserAccount::UserAccount() {}
@@ -55,6 +55,10 @@ void initialize() {
         fs.open(LOG_FILENAME, ios::out);
         fs.close();
         fs.open(COMMAND_FILENAME, ios::out);
+        fs.close();
+        fs.open(STAFF_DATA_FILENAME, ios::out);
+        fs.close();
+        fs.open(STAFF_LOG_FILENAME, ios::out);
         fs.close();
         fs.open(BILL_FILENAME, ios::out);
         fs.close();
@@ -80,5 +84,22 @@ void initialize() {
         int offset = writeData<UserAccount>(USER, root);
         Element temp(offset, "root");
         indexUserID.addElement(temp);
+        
+        //set basic data
+        bookNumber = 0;
+        totalTransaction = 0;
+        totalExpense = 0;
+        totalIncome = 0;
+        writeBasicData<int>(BOOKNUMBER, bookNumber);
+        writeBasicData<int>(TRANSACTION, totalTransaction);
+        writeBasicData<double>(EXPENSE, totalExpense);
+        writeBasicData<double>(INCOME, totalIncome);
+    }
+    else {
+        //read basic data
+        bookNumber = readBasicData<int>(BOOKNUMBER);
+        totalTransaction = readBasicData<int>(TRANSACTION);
+        totalExpense = readBasicData<double>(EXPENSE);
+        totalIncome = readBasicData<double>(INCOME);
     }
 }

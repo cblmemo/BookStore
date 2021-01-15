@@ -108,6 +108,14 @@ void UnrolledLinkedList::findElement(const string &key, vector<int> &result) {
     fin.open(filename, ios::in | ios::binary);
     if (!fin)cerr << "[Error] File open failed in \"UnrolledLinkedList::findElement\"." << endl;
     
+    fin.seekg(0, ios::end);
+    if (fin.tellg() == 0) {
+        Block temp;
+        fout.open(filename, ios::in | ios::out | ios::binary);
+        fout.write(reinterpret_cast<const char *>(&temp), sizeof(Block));
+        fout.close();
+    }
+    
     char _key[MAX_KEY_LENGTH] = {0};
     for (int i = 0; i < key.length(); i++)_key[i] = key[i];
     
@@ -152,8 +160,8 @@ void UnrolledLinkedList::addElement(const Element &o) {
     fout.open(filename, ios::in | ios::out | ios::binary);
     if ((!fin) | (!fout))cerr << "[Error] File open failed in \"UnrolledLinkedList::addElement\"." << endl;
     
-    fin.seekg(0,ios::end);
-    if(fin.tellg()==0){
+    fin.seekg(0, ios::end);
+    if (fin.tellg() == 0) {
         Block temp;
         fout.write(reinterpret_cast<const char *>(&temp), sizeof(Block));
     }
@@ -200,6 +208,12 @@ void UnrolledLinkedList::deleteElement(const Element &o) {
     fin.open(filename, ios::in | ios::binary);
     fout.open(filename, ios::in | ios::out | ios::binary);
     if ((!fin) | (!fout))cerr << "[Error] File open failed in \"UnrolledLinkedList::deleteElement\"." << endl;
+    
+    fin.seekg(0, ios::end);
+    if (fin.tellg() == 0) {
+        Block temp;
+        fout.write(reinterpret_cast<const char *>(&temp), sizeof(Block));
+    }
     
     fin.seekg(0);
     int cur = fin.tellg();
