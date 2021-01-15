@@ -23,10 +23,10 @@ UnrolledLinkedList indexAuthor(INDEX_AUTHOR_FILENAME);
 UnrolledLinkedList indexName(INDEX_NAME_FILENAME);
 UnrolledLinkedList indexKeyWord(INDEX_KEYWORD_FILENAME);
 
-Book::Book() {}
+Book::Book() = default;
 
-Book::Book(double _price, int _quantity, string _ISBN, string _name, string _author, string _keyword) : price(_price), quantity(_quantity) {
-    strcpy(ISBN, _ISBN.c_str());
+Book::Book(double _price, int _quantity, const string &ISBN_, const string &_name, const string &_author, const string &_keyword) : price(_price), quantity(_quantity) {
+    strcpy(ISBN, ISBN_.c_str());
     strcpy(name, _name.c_str());
     strcpy(author, _author.c_str());
     strcpy(keyword, _keyword.c_str());
@@ -36,12 +36,21 @@ void Book::show() const {
     cout << ISBN << "\t" << name << "\t" << author << "\t" << keyword << "\t" << std::setiosflags(ios::fixed) << std::setprecision(2) << price << "\t" << quantity << endl;
 }
 
-UserAccount::UserAccount() {}
+UserAccount::UserAccount() = default;
 
-UserAccount::UserAccount(int _authority, string _userID, string _name, string _password) : authority(_authority) {
+UserAccount::UserAccount(int _authority, const string &_userID, const string &_name, const string &_password) : authority(_authority) {
     strcpy(userID, _userID.c_str());
     strcpy(name, _name.c_str());
     strcpy(password, _password.c_str());
+}
+
+Entry::Entry() = default;
+
+Entry::Entry(const string &ISBN_, int _quantity, double _totalPrice) : quantity(_quantity), totalPrice(_totalPrice) {
+    strcpy(ISBN, ISBN_.c_str());
+    time_t now = time(0);
+    string timeStr = ctime(&now);
+    strcpy(dealTime, timeStr.c_str());
 }
 
 void initialize() {

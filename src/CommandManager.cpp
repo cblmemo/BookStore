@@ -5,6 +5,7 @@
 #include "BookStoreHeader.h"
 
 #define debug
+//#define showLogContent
 #define customCommand
 
 const string argumentName[5] = {"ISBN", "name", "author", "keyword", "price"};
@@ -66,6 +67,11 @@ void deleteArgumentType(string &argument, argumentType type, commandType _type) 
         for (int i = pos + 1; i < argument.size(); i++)temp += argument[i];
     }
     argument = temp;
+}
+
+bool bookCompare(int offset1, int offset2) {
+    Book book1 = readData<Book>(BOOK, offset1), book2 = readData<Book>(BOOK, offset2);
+    return strcmp(book1.ISBN, book2.ISBN) < 0;
 }
 
 int nowSelected() {
@@ -244,13 +250,15 @@ void runCommand(string cmd) {
         logContent += "[log] select book successful.\n";
         logContent += "ISBN: " + ISBN + "\n";
         logRecord(logContent, cmd);
-        staffLogRecord(cmdType, ISBN);
+        if (nowAuthority() == 3)staffLogRecord(cmdType, ISBN);
     }
     else if (cmdType == "modify") {
         if (nowSelected() < 0)throw invalidCommand(MODIFY, NOBOOKSELECTED);
         Book nowSelectedBook = readData<Book>(BOOK, nowSelected());
         string arg[5];
         ss >> arg[0] >> arg[1] >> arg[2] >> arg[3] >> arg[4];
+        ss >> remains;
+        if (!remains.empty())throw invalidCommand(MODIFY, REMAINS);
         argumentType argType[5] = {ISBN_, NAME_, AUTHOR_, KEYWORD_, PRICE_};
         string arguments[6];
         int appearTime[6] = {0};
@@ -366,63 +374,158 @@ void runCommand(string cmd) {
             else argForLog += "--";
             if (i < 4)argForLog += " ";
         }
-        staffLogRecord(cmdType, argForLog);
+        if (nowAuthority() == 3)staffLogRecord(cmdType, argForLog);
     }
     else if (cmdType == "import") {
-        if (nowSelected() < 0)throw invalidCommand(IMPORT, NOBOOKSELECTED);
-        Book nowSelectedBook = readData<Book>(BOOK, nowSelected());
-        
-        
+        string _quantity, _cost_price;
+        ss >> _quantity >> _cost_price;
+        ss >> remains;
+        if (!remains.empty())throw invalidCommand(IMPORT, REMAINS);
+        if (_quantity.size() > 5)throw invalidCommand(IMPORT, WRONGFORMAT, "quantity");
+        for (auto i:_quantity)if (i > '9' || i < '0')throw invalidCommand(IMPORT, WRONGFORMAT, "quantity");
+        bool point = false;
+        for (auto i:_cost_price) {
+            if (i < '0' || i > '9') {
+                if (i == '.' && !point)point = true;
+                else throw invalidCommand(IMPORT, WRONGFORMAT, "cost_price");
+            }
+        }
+        stringstream ss1(_quantity), ss2(_cost_price);
+        int quantity;
+        double cost_price;
+        ss1 >> quantity;
+        ss2 >> cost_price;
+        authorityCheck(3, IMPORT);
+        import(quantity, cost_price);
+        string ISBN = readData<Book>(BOOK, nowSelected()).ISBN;
+        Entry temp(ISBN, quantity, -cost_price);
+        entryRecord(temp);
+        logContent += "[log] import successful.\n";
+        logContent += "ISBN: " + ISBN + "\n";
+        logContent += "quantity: " + _quantity + "\n";
+        logContent += "coat_price: " + _cost_price + "\n";
+        logRecord(logContent, cmd);
+        if (nowAuthority() == 3)staffLogRecord(cmdType, ISBN + " " + _quantity + " " + _cost_price);
     }
     else if (cmdType == "show") {
         string argument;
         ss >> argument;
         if (argument == "finance") {
+            string _times;
+            ss >> _times;
+            ss >> remains;
+            if (!remains.empty())throw invalidCommand(SHOW, REMAINS);
             authorityCheck(7, SHOW);
-            string times;
-            //todo
+            if (_times.empty()) {
+                cout << std::setiosflags(ios::fixed) << std::setprecision(2) << "+ " << totalIncome << " - " << totalExpense << "\n";
+                logContent += "[log] show all finance successful.\n";
+                logRecord(logContent, cmd);
+            }
+            else {
+                stringstream ss0(_times);
+                int times;
+                ss0 >> times;
+                if (times > totalTransaction)throw invalidCommand(SHOW, WRONGFORMAT, "times");
+                double income = 0, expense = 0;
+                calculateEntry(totalTransaction - times, totalTransaction, income, expense);
+                cout << std::setiosflags(ios::fixed) << std::setprecision(2) << "+ " << income << " - " << expense << "\n";
+                logContent += "[log] show recent " + _times + " times finance successful.\n";
+                logContent += "times: " + _times + "\n";
+                logRecord(logContent, cmd);
+            }
         }
         else {
             authorityCheck(1, SHOW);
             if (argument.empty()) {
                 if (bookNumber == 0)cout << "\n";
                 else {
-                    for (int i = 0; i < bookNumber; i++) {
-                        Book temp = readData<Book>(BOOK, i * sizeof(Book));
-                        temp.show();
-                    }
-                }
-                logContent += "[log] show all books successful.\n";
-                logRecord(logContent, cmd);
-                staffLogRecord(cmdType, "");
-            }
-            else {
-                argumentType type = getArgumentType(SHOW, argument);
-                if (type > 3)throw invalidCommand(SHOW, WRONGFORMAT, "arguments");
-                deleteArgumentType(argument, type, SHOW);
-                vector<int> possibleOffset;
-                if (type == ISBN_) indexISBN.findElement(argument, possibleOffset);
-                else if (type == NAME_) indexName.findElement(argument, possibleOffset);
-                else if (type == AUTHOR_)indexAuthor.findElement(argument, possibleOffset);
-                else {
-                    vector<string> keyWord;
-                    splitKeyWord(argument, keyWord);
-                    for (const string &i:keyWord)indexKeyWord.findElement(i, possibleOffset);
-                }
-                //todo sort as ISBN's lexicographical order
-                if (possibleOffset.empty())cout << "\n";
-                else {
+                    vector<int> possibleOffset;
+                    for (int i = 0; i < bookNumber; i++) possibleOffset.push_back(i * sizeof(Book));
+                    sort(possibleOffset.begin(), possibleOffset.end(), bookCompare);
                     for (int i:possibleOffset) {
                         Book temp = readData<Book>(BOOK, i);
                         temp.show();
                     }
                 }
+                logContent += "[log] show all books successful.\n";
+                logRecord(logContent, cmd);
+                if (nowAuthority() == 3)staffLogRecord(cmdType, "");
             }
-            
+            else {
+                ss >> remains;
+                if (!remains.empty())throw invalidCommand(SHOW, REMAINS);
+                argumentType type = getArgumentType(SHOW, argument);
+                if (type > 3)throw invalidCommand(SHOW, WRONGFORMAT, "arguments");
+                logContent += "[log] show books successful.\n";
+                string argForLog;
+                deleteArgumentType(argument, type, SHOW);
+                vector<int> possibleOffset;
+                if (type == ISBN_) {
+                    argumentCheck(argument, "ISBN", SHOW, 20);
+                    indexISBN.findElement(argument, possibleOffset);
+                    logContent += "ISBN: [" + argument + "]\n";
+                    argForLog += argument + " -- -- --";
+                }
+                else if (type == NAME_) {
+                    argumentCheck(argument, "name", SHOW, 60);
+                    indexName.findElement(argument, possibleOffset);
+                    logContent += "name: [" + argument + "]\n";
+                    argForLog += "-- " + argument + " -- --";
+                }
+                else if (type == AUTHOR_) {
+                    argumentCheck(argument, "author", SHOW, 60);
+                    indexAuthor.findElement(argument, possibleOffset);
+                    logContent += "author: [" + argument + "]\n";
+                    argForLog += "-- -- " + argument + " --";
+                }
+                else {
+                    argumentCheck(argument, "keyword", SHOW, 60);
+                    vector<string> keyWord;
+                    splitKeyWord(argument, keyWord);
+                    for (const string &i:keyWord) {
+                        vector<int> temp;
+                        indexKeyWord.findElement(i, temp);
+                        for (int j:temp) {
+                            if (find(possibleOffset.begin(), possibleOffset.end(), j) == possibleOffset.end())possibleOffset.push_back(j);
+                        }
+                    }
+                    logContent += "keyword: [" + argument + "]\n";
+                    argForLog += "-- -- -- " + argument;
+                }
+                if (possibleOffset.empty())cout << "\n";
+                else {
+                    //sort as ISBN's lexicographical order
+                    sort(possibleOffset.begin(), possibleOffset.end(), bookCompare);
+                    for (int i:possibleOffset) {
+                        Book temp = readData<Book>(BOOK, i);
+                        temp.show();
+                    }
+                }
+                logRecord(logContent, cmd);
+                if (nowAuthority() == 3)staffLogRecord(cmdType, argForLog);
+            }
         }
     }
     else if (cmdType == "buy") {
-        
+        string ISBN, _quantity;
+        ss >> ISBN >> _quantity;
+        ss >> remains;
+        if (!remains.empty())throw invalidCommand(BUY, REMAINS);
+        if (_quantity.size() > 5)throw invalidCommand(BUY, WRONGFORMAT, "quantity");
+        for (auto i:_quantity)if (i > '9' || i < '0')throw invalidCommand(BUY, WRONGFORMAT, "quantity");
+        argumentCheck(ISBN, "ISBN", BUY, 20);
+        authorityCheck(1, BUY);
+        int quantity;
+        stringstream ss0(_quantity);
+        ss0 >> quantity;
+        double singlePrice = buy(ISBN, quantity);
+        Entry temp(ISBN, quantity, quantity * singlePrice);
+        entryRecord(temp);
+        logContent += "[log] buy books successful.\n";
+        logContent += "ISBN: " + ISBN + "\n";
+        logContent += "quantity: " + _quantity + "\n";
+        logRecord(logContent, cmd);
+        if (nowAuthority() == 3)staffLogRecord(cmdType, ISBN + " " + _quantity);
     }
     else if (cmdType == "report") {
         string reportType;
@@ -502,6 +605,27 @@ void runCommand(string cmd) {
     else throw invalidCommand(UNKNOWN, UNKNOWNERROR);
 }
 
+void entryRecord(const Entry &o) {
+    fstream fs;
+    fs.open(BILL_FILENAME, ios::in | ios::out | ios::binary);
+    fs.seekp(0, ios::end);
+    fs.write(reinterpret_cast<const char *>(&o), sizeof(Entry));
+    fs.close();
+}
+
+void calculateEntry(int start, int end, double &income, double &expense) {
+    fstream fs;
+    fs.open(BILL_FILENAME, ios::in | ios::out | ios::binary);
+    fs.seekg(start * sizeof(Entry));
+    Entry tempEntry;
+    for (int i = start; i < end; i++) {
+        fs.read(reinterpret_cast<char *>(&tempEntry), sizeof(Entry));
+        income += (tempEntry.totalPrice > 0 ? tempEntry.totalPrice : 0);
+        expense -= (tempEntry.totalPrice < 0 ? tempEntry.totalPrice : 0);
+    }
+    fs.close();
+}
+
 void staffRecord(const string &userID) {
     char user_id[30] = {0};
     strcpy(user_id, userID.c_str());
@@ -517,6 +641,7 @@ void getStaff(vector<string> &staff) {
     string userID;
     fstream fs;
     fs.open(STAFF_DATA_FILENAME, ios::in | ios::binary);
+    fs.seekg(0);
     fs.read(user_id, sizeof(user_id));
     while (!fs.eof()) {
         userID = user_id;
@@ -553,7 +678,7 @@ void logRecord(string logContent, const string &cmd) {
     fs << cmd << endl;
     fs.close();
 
-#ifdef debug
+#ifdef showLogContent
     cout << "[debug] logContent:" << endl;
     cout << logContent;
 #endif
@@ -628,16 +753,30 @@ void selectBook(const string &ISBN) {
     else selectedBookOffsetStack[selectedBookOffsetStack.size() - 1] = possibleOffset[0];
 }
 
-void import(int quantity, double cost) {
-    
+void import(int quantity, double cost_price) {
+    if (nowSelected() < 0)throw invalidCommand(IMPORT, NOBOOKSELECTED);
+    Book nowSelectedBook = readData<Book>(BOOK, nowSelected());
+    nowSelectedBook.quantity += quantity;
+    writeData<Book>(BOOK, nowSelectedBook, nowSelected());
+    totalExpense += cost_price;
+    writeBasicData<double>(EXPENSE, totalExpense);
+    totalTransaction++;
+    writeBasicData<int>(TRANSACTION, totalTransaction);
 }
 
-void showFinance(int times) {
-    
-}
-
-void buy(string ISBN, int quantity) {
-    
+double buy(const string &ISBN, int quantity) {
+    vector<int> possibleOffset;
+    indexISBN.findElement(ISBN, possibleOffset);
+    if (possibleOffset.empty())throw invalidCommand(BUY, INEXISTBOOK);
+    Book buyBook = readData<Book>(BOOK, possibleOffset[0]);
+    if (buyBook.quantity < quantity)throw invalidCommand(BUY, NOENOUGHINVENTORY);
+    buyBook.quantity -= quantity;
+    writeData<Book>(BOOK, buyBook, possibleOffset[0]);
+    totalIncome += quantity * buyBook.price;
+    writeBasicData<double>(INCOME, totalIncome);
+    totalTransaction++;
+    writeBasicData<int>(TRANSACTION, totalTransaction);
+    return buyBook.price;
 }
 
 //bookCommand:---------/\

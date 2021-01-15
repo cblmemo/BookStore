@@ -10,10 +10,13 @@
 
 #include <iomanip>
 #include <sstream>
+#include <algorithm>
 #include <ctime>
 
 using std::stringstream;
 using std::cin;
+using std::sort;
+using std::find;
 
 //file name
 #define LOG_FILENAME "log.dat"
@@ -40,7 +43,8 @@ using std::cin;
 #define DELETE_ROOT_ACCOUNT_MESSAGE "cannot delete root account"//delete
 #define WRONG_OLD_PASSWORD_MESSAGE "old password wrong"//passwd
 #define NO_BOOK_SELECTED_MESSAGE "no book was selected"//modify, import
-
+#define INEXIST_BOOK_MESSAGE "this book doesn't exist"//buy
+#define NO_ENOUGH_INVENTORY_MESSAGE "no enough inventory"//buy
 #define UNKNOWN_ERROR_MESSAGE "unknown error"
 
 //enum type:-----------\/
@@ -75,7 +79,7 @@ public:
 public:
     Book();
     
-    Book(double _price, int _quantity, string _ISBN, string _name, string _author, string _keyword);
+    Book(double _price, int _quantity, const string &ISBN_, const string &_name, const string &_author, const string &_keyword);
     
     void show() const;
 };
@@ -90,17 +94,20 @@ public:
 public:
     UserAccount();
     
-    UserAccount(int _authority, string _userID, string _name, string _password);
+    UserAccount(int _authority, const string &_userID, const string &_name, const string &_password);
 };
 
 class Entry {
 public:
-    time_t time;
-    char userID[30] = {0};
+    char dealTime[40];
     char ISBN[20] = {0};
-    int quantity = 0;//positive represent buy, negative represent import
-    double price = 0;
-    double totalPrice = 0;
+    int quantity = 0;//positive represent buy(income), negative represent import(expense)
+    double totalPrice = 0;//positive represent buy(income), negative represent import(expense)
+
+public:
+    Entry();
+    
+    Entry(const string &ISBN_, int _quantity, double _totalPrice);
 };
 
 //class:---------------/\
@@ -109,7 +116,7 @@ public:
 
 //bookStore:-----------\/
 
-void initialize();//finished
+void initialize();
 
 //bookStore:-----------/\
 
@@ -123,6 +130,8 @@ argumentType getArgumentType(commandType type, string argument);
 
 void deleteArgumentType(string &argument, argumentType type, commandType _type);
 
+bool bookCompare(int offset1, int offset2);
+
 int nowSelected();
 
 int nowAuthority();
@@ -132,6 +141,10 @@ void authorityCheck(int requirements, commandType type);
 void argumentCheck(string argument, string argumentName, commandType type, int maxsize);
 
 void runCommand(string cmd);
+
+void entryRecord(const Entry &o);
+
+void calculateEntry(int start, int end, double &income, double &expense);
 
 void staffRecord(const string &userID);
 
@@ -162,11 +175,9 @@ void showLog();
 
 void selectBook(const string &ISBN);
 
-void import(int quantity, double cost);
+void import(int quantity, double cost_price);
 
-void showFinance(int times = -1);
-
-void buy(string ISBN, int quantity);
+double buy(const string &ISBN, int quantity);
 
 //bookCommand:---------/\
 

@@ -25,6 +25,8 @@ enum errorType {
     DELETEROOTACCOUNT,
     WRONGOLDPASSWORD,//passwd
     NOBOOKSELECTED,//modify, import
+    INEXISTBOOK,//buy
+    NOENOUGHINVENTORY,//buy
     UNKNOWNERROR
 };
 
@@ -39,7 +41,7 @@ public:
         detail = _detail;
     }
     
-    invalidCommand(commandType _cmdType, errorType _errType, string _detail) : cmdType(_cmdType), errType(_errType) {
+    invalidCommand(commandType _cmdType, errorType _errType, const string &_detail) : cmdType(_cmdType), errType(_errType) {
         detail = _detail;
     }
 };

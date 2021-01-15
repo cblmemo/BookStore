@@ -19,7 +19,15 @@ void Administrator::runProgramme() {
             else if (ex.cmdType == REGISTER)logContent += "[log] register failed.\n";
             else if (ex.cmdType == DELETE) logContent += "[log] delete failed.\n";
             else if (ex.cmdType == PASSWD) logContent += "[log] change password failed.\n";
-            
+            else if (ex.cmdType == SELECT) logContent += "[log] select failed.\n";
+            else if (ex.cmdType == MODIFY) logContent += "[log] modify failed.\n";
+            else if (ex.cmdType == IMPORT) logContent += "[log] import failed.\n";
+            else if (ex.cmdType == SHOW) logContent += "[log] show books failed.\n";
+            else if (ex.cmdType == SHOWFINANCE) logContent += "[log] show finance failed.\n";
+            else if (ex.cmdType == BUY) logContent += "[log] buy books failed.\n";
+            else if (ex.cmdType == REPORTFINANCE) logContent += "[log] report finance failed.\n";
+            else if (ex.cmdType == REPORTEMPLOYEE) logContent += "[log] report employee failed.\n";
+            else if (ex.cmdType == REPORTMYSELF) logContent += "[log] report yourself failed.\n";
             else if (ex.cmdType == UNKNOWN) logContent += "[log] unknown operation failed.\n";
             
             logContent += "Possible reason: ";
@@ -34,7 +42,8 @@ void Administrator::runProgramme() {
             else if (ex.errType == DELETEROOTACCOUNT) logContent += DELETE_ROOT_ACCOUNT_MESSAGE;
             else if (ex.errType == WRONGOLDPASSWORD) logContent += WRONG_OLD_PASSWORD_MESSAGE;
             else if (ex.errType == NOBOOKSELECTED)logContent += NO_BOOK_SELECTED_MESSAGE;
-            
+            else if (ex.errType == INEXISTBOOK)logContent += INEXIST_BOOK_MESSAGE;
+            else if (ex.errType == NOENOUGHINVENTORY)logContent += NO_ENOUGH_INVENTORY_MESSAGE;
             else if (ex.errType == UNKNOWNERROR) logContent += UNKNOWN_ERROR_MESSAGE;
             logContent += "\n";
             logRecord(logContent, cmd);
