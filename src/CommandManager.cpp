@@ -300,11 +300,12 @@ void runCommand(const string &cmd) {
         if (haveThisArgument[0]) {
             argumentCheck(arguments[0], "ISBN", MODIFY, 20);
             oldISBN = nowSelectedBook.ISBN;
-            Element oldIndex(nowSelected(), oldISBN);
-            indexISBN.deleteElement(oldIndex);
+            if (oldISBN == arguments[0])throw invalidCommand(MODIFY, WRONGFORMAT, "ISBN");
             vector<int> possibleOffset;
             indexISBN.findElement(arguments[0], possibleOffset);
             if (possibleOffset.empty()) {
+                Element oldIndex(nowSelected(), oldISBN);
+                indexISBN.deleteElement(oldIndex);
                 Element newIndex(nowSelected(), arguments[0]);
                 indexISBN.addElement(newIndex);
                 strcpy(nowSelectedBook.ISBN, arguments[0].c_str());
@@ -348,25 +349,19 @@ void runCommand(const string &cmd) {
             argumentCheck(arguments[3], "keyword", MODIFY, 60);
             keyWordStr = nowSelectedBook.keyword;
             splitKeyWord(keyWordStr, oldKeyWord);
-            if (oldKeyWord.empty()) {
-                vector<string> keyWord;
-                splitKeyWord(arguments[3], keyWord);
-                for (const string &i:keyWord) {
-                    Element temp(nowSelected(), i);
-                    indexKeyWord.addElement(temp);
-                }
-            }
-            else {
-                vector<string> newKeyWord;
-                splitKeyWord(arguments[3], newKeyWord);
+            vector<string> newKeyWord;
+            splitKeyWord(arguments[3], newKeyWord);
+            sort(newKeyWord.begin(), newKeyWord.end());
+            for (int i = 0; i < newKeyWord.size() - 1; i++) if (newKeyWord[i] == newKeyWord[i + 1])throw invalidCommand(MODIFY, REPEATEDKEYWORDS);
+            if (!oldKeyWord.empty()) {
                 for (const string &i:oldKeyWord) {
                     Element oldIndex(nowSelected(), i);
                     indexKeyWord.deleteElement(oldIndex);
                 }
-                for (const string &i:newKeyWord) {
-                    Element newIndex(nowSelected(), i);
-                    indexKeyWord.addElement(newIndex);
-                }
+            }
+            for (const string &i:newKeyWord) {
+                Element newIndex(nowSelected(), i);
+                indexKeyWord.addElement(newIndex);
             }
             strcpy(nowSelectedBook.keyword, arguments[3].c_str());
             writeData<Book>(BOOK, nowSelectedBook, nowSelected());

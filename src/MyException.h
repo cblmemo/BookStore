@@ -26,6 +26,7 @@ enum errorType {
     DELETEROOTACCOUNT,
     WRONGOLDPASSWORD,//passwd
     NOBOOKSELECTED,//modify, import
+    REPEATEDKEYWORDS,//modify
     INEXISTBOOK,//buy
     NOENOUGHINVENTORY,//buy
     BOSSREPORTITSELF,//report myself

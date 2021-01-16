@@ -45,6 +45,7 @@ using std::setprecision;
 #define DELETE_ROOT_ACCOUNT_MESSAGE "cannot delete root account"//delete
 #define WRONG_OLD_PASSWORD_MESSAGE "old password wrong"//passwd
 #define NO_BOOK_SELECTED_MESSAGE "no book was selected"//modify, import
+#define REPEATED_KEYWORDS_MESSAGE "repeated keywords"//modify
 #define INEXIST_BOOK_MESSAGE "this book doesn't exist"//buy
 #define NO_ENOUGH_INVENTORY_MESSAGE "no enough inventory"//buy
 #define BOSS_REPORT_ITSELF_MESSAGE "boss trying to report itself"//report myself

@@ -42,6 +42,7 @@ void Administrator::runProgramme() {
             else if (ex.errType == DELETEROOTACCOUNT) logContent += DELETE_ROOT_ACCOUNT_MESSAGE;
             else if (ex.errType == WRONGOLDPASSWORD) logContent += WRONG_OLD_PASSWORD_MESSAGE;
             else if (ex.errType == NOBOOKSELECTED)logContent += NO_BOOK_SELECTED_MESSAGE;
+            else if (ex.errType == REPEATEDKEYWORDS)logContent += REPEATED_KEYWORDS_MESSAGE;
             else if (ex.errType == INEXISTBOOK)logContent += INEXIST_BOOK_MESSAGE;
             else if (ex.errType == NOENOUGHINVENTORY)logContent += NO_ENOUGH_INVENTORY_MESSAGE;
             else if (ex.errType == BOSSREPORTITSELF)logContent += BOSS_REPORT_ITSELF_MESSAGE;
