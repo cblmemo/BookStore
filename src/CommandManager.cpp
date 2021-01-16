@@ -96,6 +96,7 @@ void argumentCheck(const string &argument, const string &argumentNameStr, comman
 
 void runCommand(const string &cmd) {
     if (cmd == "exit" || cmd == "quit")exit(0);
+    //cout << "[debug] " << cmd << "\n";
     stringstream ss(cmd);
     string cmdType;
     string logContent;
@@ -210,17 +211,33 @@ void runCommand(const string &cmd) {
         authorityCheck(1, PASSWD);
         string nowUser = accountStack[accountStack.size() - 1].userID;
         if (nowUser == "root") {
-            string user_id, newPasswd;
-            ss >> user_id >> newPasswd;
+            string user_id, newPasswd, oldPasswd;
+            ss >> user_id >> newPasswd >> oldPasswd;
             ss >> remains;
             if (!remains.empty())throw invalidCommand(PASSWD, REMAINS);
-            argumentCheck(user_id, "user-id", PASSWD, 30);
-            argumentCheck(newPasswd, "new-passwd", PASSWD, 30);
-            changePassword(user_id, newPasswd);
-            logContent += "[log] [root] change password successful.\n";
-            logContent += "user-id: " + user_id + "\n";
-            logContent += "new-passwd: " + newPasswd + "\n";
-            logRecord(logContent, cmd);
+            if (oldPasswd.empty()) {
+                argumentCheck(user_id, "user-id", PASSWD, 30);
+                argumentCheck(newPasswd, "new-passwd", PASSWD, 30);
+                changePassword(user_id, newPasswd);
+                logContent += "[log] [root] change password successful.\n";
+                logContent += "user-id: " + user_id + "\n";
+                logContent += "new-passwd: " + newPasswd + "\n";
+                logRecord(logContent, cmd);
+            }
+            else {
+                string temp = newPasswd;
+                newPasswd = oldPasswd;
+                oldPasswd = temp;
+                argumentCheck(user_id, "user-id", PASSWD, 30);
+                argumentCheck(newPasswd, "new-passwd", PASSWD, 30);
+                argumentCheck(oldPasswd, "old-passwd", PASSWD, 30);
+                changePassword(user_id, newPasswd, oldPasswd);
+                logContent += "[log] change password successful.\n";
+                logContent += "user-id: " + user_id + "\n";
+                logContent += "old-passwd: " + oldPasswd + "\n";
+                logContent += "new-passwd: " + newPasswd + "\n";
+                logRecord(logContent, cmd);
+            }
         }
         else {
             string user_id, oldPasswd, newPasswd;
@@ -545,11 +562,13 @@ void runCommand(const string &cmd) {
         if (reportType == "finance") {
             ss >> remains;
             if (!remains.empty())throw invalidCommand(REPORTFINANCE, REMAINS);
+            authorityCheck(7, REPORTFINANCE);
             reportFinance();
         }
         else if (reportType == "employee") {
             ss >> remains;
             if (!remains.empty())throw invalidCommand(REPORTEMPLOYEE, REMAINS);
+            authorityCheck(7, REPORTEMPLOYEE);
             reportEmployee();
         }
         else if (reportType == "myself") {
@@ -565,6 +584,7 @@ void runCommand(const string &cmd) {
     else if (cmdType == "log") {
         ss >> remains;
         if (!remains.empty())throw invalidCommand(LOG, REMAINS);
+        authorityCheck(7, LOG);
         showLog();
     }
 #ifdef customCommand

@@ -150,6 +150,10 @@ void UnrolledLinkedList::findElement(const string &key, vector<int> &result) {
                 }
             }
         }
+        if (pos == len) {
+            flag = true;
+            cur = nextBlock(cur);
+        }
     }
     
     fin.close();
