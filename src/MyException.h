@@ -8,6 +8,7 @@
 #include <string>
 
 using std::string;
+using std::exception;
 
 enum commandType {
     SU, LOGOUT, USERADD, REGISTER, DELETE, PASSWD, SELECT, MODIFY, IMPORT,
@@ -27,10 +28,11 @@ enum errorType {
     NOBOOKSELECTED,//modify, import
     INEXISTBOOK,//buy
     NOENOUGHINVENTORY,//buy
+    BOSSREPORTITSELF,//report myself
     UNKNOWNERROR
 };
 
-class invalidCommand : public std::exception {
+class invalidCommand : public exception {
 public:
     commandType cmdType;
     errorType errType;

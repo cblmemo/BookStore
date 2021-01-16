@@ -33,7 +33,7 @@ Book::Book(double _price, int _quantity, const string &ISBN_, const string &_nam
 }
 
 void Book::show() const {
-    cout << ISBN << "\t" << name << "\t" << author << "\t" << keyword << "\t" << std::setiosflags(ios::fixed) << std::setprecision(2) << price << "\t" << quantity << "\n";
+    cout << ISBN << "\t" << name << "\t" << author << "\t" << keyword << "\t" << setiosflags(ios::fixed) << setprecision(2) << price << "\t" << quantity << "\n";
     //printf("%s\t%s\t%s\t%s\t%.2lf\t%d\n", ISBN, name, author, keyword, price, quantity);
 }
 
@@ -47,9 +47,10 @@ UserAccount::UserAccount(int _authority, const string &_userID, const string &_n
 
 Entry::Entry() = default;
 
-Entry::Entry(const string &ISBN_, int _quantity, double _totalPrice) : quantity(_quantity), totalPrice(_totalPrice) {
+Entry::Entry(const string &ISBN_, const string &_userID, int _operatorAuthority, int _quantity, double _totalPrice) : operatorAuthority(_operatorAuthority), quantity(_quantity), totalPrice(_totalPrice) {
     strcpy(ISBN, ISBN_.c_str());
-    time_t now = time(0);
+    strcpy(userID, _userID.c_str());
+    time_t now = time(nullptr);
     string timeStr = ctime(&now);
     strcpy(dealTime, timeStr.c_str());
 }

@@ -26,13 +26,13 @@ extern UnrolledLinkedList indexKeyWord;
 
 //commandFunction:-----\/
 
-void splitKeyWord(string keyWordStr, vector<string> &keyWord) {
+void splitKeyWord(const string &keyWordStr, vector<string> &keyWord) {
     stringstream ss(keyWordStr);
     string temp;
     while (getline(ss, temp, '|'))keyWord.push_back(temp);
 }
 
-argumentType getArgumentType(commandType type, string argument) {
+argumentType getArgumentType(commandType type, const string &argument) {
     if (argument.size() < 6)throw invalidCommand(type, WRONGFORMAT, "arguments");
     string temp;
     for (int i = 0; i < 6; i++)temp += argument[i];
@@ -60,7 +60,7 @@ void deleteArgumentType(string &argument, argumentType type, commandType _type) 
         }
     }
     if (type != PRICE_ && type != ISBN_) {
-        if (argument[pos + 1] != '\"' || argument[argument.size() - 1] != '\"')throw invalidCommand(MODIFY, WRONGFORMAT, argumentName[type]);
+        if (argument[pos + 1] != '\"' || argument[argument.size() - 1] != '\"')throw invalidCommand(_type, WRONGFORMAT, argumentName[type]);
         for (int i = pos + 2; i < argument.size() - 1; i++)temp += argument[i];
     }
     else {
@@ -89,12 +89,12 @@ void authorityCheck(int requirements, commandType type) {
     if (auth < requirements)throw invalidCommand(type, INADEQUATEAUTHORITY);
 }
 
-void argumentCheck(string argument, string argumentName, commandType type, int maxsize) {
-    if (argument.empty())throw invalidCommand(type, MISSING);
-    if (argument.size() > maxsize)throw invalidCommand(type, WRONGFORMAT);
+void argumentCheck(const string &argument, const string &argumentNameStr, commandType type, int maxsize) {
+    if (argument.empty())throw invalidCommand(type, MISSING, argumentNameStr);
+    if (argument.size() > maxsize)throw invalidCommand(type, WRONGFORMAT, argumentNameStr);
 }
 
-void runCommand(string cmd) {
+void runCommand(const string &cmd) {
     if (cmd == "exit" || cmd == "quit")exit(0);
     stringstream ss(cmd);
     string cmdType;
@@ -106,8 +106,8 @@ void runCommand(string cmd) {
         ss >> user_id >> passwd;
         ss >> remains;
         if (!remains.empty())throw invalidCommand(SU, REMAINS);
-        if (user_id == "")throw invalidCommand(SU, MISSING, "user-id");
-        if (passwd == "") {
+        if (user_id.empty())throw invalidCommand(SU, MISSING, "user-id");
+        if (passwd.empty()) {
             if (user_id.size() > 30)throw invalidCommand(SU, WRONGFORMAT, "user-id");
             login(user_id);
             logContent += "[log] high authority login successful.\n";
@@ -135,7 +135,7 @@ void runCommand(string cmd) {
         logContent += "user-id: " + (string) logoutAccount.userID + "\n";
         logContent += "name: " + (string) logoutAccount.name + "\n";
         logContent += "authority: ";
-        logContent += (logoutAccount.authority + '0');
+        logContent += char(logoutAccount.authority + '0');
         logContent += "\n";
         logRecord(logContent, cmd);
     }
@@ -164,7 +164,7 @@ void runCommand(string cmd) {
         logContent += "passwd: " + (string) _addAccount.password + "\n";
         logContent += "name: " + (string) _addAccount.name + "\n";
         logContent += "authority: ";
-        logContent += (_addAccount.authority + '0');
+        logContent += char(_addAccount.authority + '0');
         logContent += "\n";
         logRecord(logContent, cmd);
         if (nowAuthority() == 3)staffLogRecord(cmdType, user_id + " " + passwd + " " + _auth + " " + name);
@@ -189,7 +189,7 @@ void runCommand(string cmd) {
         logContent += "passwd: " + (string) _registerAccount.password + "\n";
         logContent += "name: " + (string) _registerAccount.name + "\n";
         logContent += "authority: ";
-        logContent += (_registerAccount.authority + '0');
+        logContent += char(_registerAccount.authority + '0');
         logContent += "\n";
         logRecord(logContent, cmd);
     }
@@ -262,10 +262,10 @@ void runCommand(string cmd) {
         string arguments[6];
         int appearTime[6] = {0};
         bool haveThisArgument[6] = {false};
-        for (int i = 0; i < 5; i++) {
-            if (!arg[i].empty()) {
-                argumentType type = getArgumentType(MODIFY, arg[i]);
-                arguments[type] = arg[i];
+        for (const string &i:arg) {
+            if (!i.empty()) {
+                argumentType type = getArgumentType(MODIFY, i);
+                arguments[type] = i;
                 appearTime[type]++;
             }
         }
@@ -406,7 +406,8 @@ void runCommand(string cmd) {
         authorityCheck(3, IMPORT);
         import(quantity, cost_price);
         string ISBN = readData<Book>(BOOK, nowSelected()).ISBN;
-        Entry temp(ISBN, quantity, -cost_price);
+        string user_id = accountStack[accountStack.size() - 1].userID;
+        Entry temp(ISBN, user_id, nowAuthority(), -quantity, -cost_price);
         entryRecord(temp);
         logContent += "[log] import successful.\n";
         logContent += "ISBN: " + ISBN + "\n";
@@ -425,7 +426,7 @@ void runCommand(string cmd) {
             if (!remains.empty())throw invalidCommand(SHOW, REMAINS);
             authorityCheck(7, SHOW);
             if (_times.empty()) {
-                cout << std::setiosflags(ios::fixed) << std::setprecision(2) << "+ " << totalIncome << " - " << totalExpense << "\n";
+                cout << setiosflags(ios::fixed) << setprecision(2) << "+ " << totalIncome << " - " << totalExpense << "\n";
                 logContent += "[log] show all finance successful.\n";
                 logRecord(logContent, cmd);
             }
@@ -436,7 +437,7 @@ void runCommand(string cmd) {
                 if (times > totalTransaction)throw invalidCommand(SHOW, WRONGFORMAT, "times");
                 double income = 0, expense = 0;
                 calculateEntry(totalTransaction - times, totalTransaction, income, expense);
-                cout << std::setiosflags(ios::fixed) << std::setprecision(2) << "+ " << income << " - " << expense << "\n";
+                cout << setiosflags(ios::fixed) << setprecision(2) << "+ " << income << " - " << expense << "\n";
                 logContent += "[log] show recent " + _times + " times finance successful.\n";
                 logContent += "times: " + _times + "\n";
                 logRecord(logContent, cmd);
@@ -457,7 +458,7 @@ void runCommand(string cmd) {
                 }
                 logContent += "[log] show all books successful.\n";
                 logRecord(logContent, cmd);
-                if (nowAuthority() == 3)staffLogRecord(cmdType, "");
+                if (nowAuthority() == 3)staffLogRecord(cmdType, "-- -- -- --");
             }
             else {
                 ss >> remains;
@@ -529,7 +530,8 @@ void runCommand(string cmd) {
         double singlePrice = buy(ISBN, quantity);
         double totalPrice = singlePrice * quantity;
         cout << std::setiosflags(ios::fixed) << std::setprecision(2) << totalPrice << "\n";
-        Entry temp(ISBN, quantity, totalPrice);
+        string user_id = accountStack[accountStack.size() - 1].userID;
+        Entry temp(ISBN, user_id, nowAuthority(), quantity, totalPrice);
         entryRecord(temp);
         logContent += "[log] buy books successful.\n";
         logContent += "ISBN: " + ISBN + "\n";
@@ -541,13 +543,22 @@ void runCommand(string cmd) {
         string reportType;
         ss >> reportType;
         if (reportType == "finance") {
-            
+            ss >> remains;
+            if (!remains.empty())throw invalidCommand(REPORTFINANCE, REMAINS);
+            reportFinance();
         }
         else if (reportType == "employee") {
-            
+            ss >> remains;
+            if (!remains.empty())throw invalidCommand(REPORTEMPLOYEE, REMAINS);
+            reportEmployee();
         }
         else if (reportType == "myself") {
-            
+            ss >> remains;
+            if (!remains.empty())throw invalidCommand(REPORTMYSELF, REMAINS);
+            if (nowAuthority() < 3)throw invalidCommand(REPORTMYSELF, INADEQUATEAUTHORITY);
+            if (nowAuthority() == 7)throw invalidCommand(REPORTMYSELF, BOSSREPORTITSELF);
+            string userID = accountStack[accountStack.size() - 1].userID;
+            reportMyself(userID, true);
         }
         else throw invalidCommand(UNKNOWN, UNKNOWNERROR);
     }
@@ -676,7 +687,7 @@ void logRecord(string logContent, const string &cmd) {
     }
     logContent += "[operator] " + userStr + "\n";
     
-    time_t now = time(0);
+    time_t now = time(nullptr);
     string timeStr = ctime(&now);
     logContent += "[operating time] " + timeStr + "\n";
     
@@ -715,30 +726,134 @@ void staffLogRecord(const string &type, const string &arguments) {
 //basicCommand:--------\/
 
 void reportFinance() {
-    
+    cout << "----------------------------------------" << endl;
+    Entry tempEntry;
+    cout << "[function] report finance:" << endl;
+    fstream fs;
+    fs.open(BILL_FILENAME, ios::in | ios::binary);
+    for (int i = 0; i < totalTransaction; i++) {
+        fs.read(reinterpret_cast<char *>(&tempEntry), sizeof(Entry));
+        cout << "[cnt] No." << i << " entry:" << endl;
+        if (tempEntry.quantity < 0) {
+            cout << "[import] during " << tempEntry.dealTime;
+            if (tempEntry.operatorAuthority == 3)cout << "employee";
+            else cout << "boss";
+            cout << " [" << tempEntry.userID << "] import ISBN: [" << tempEntry.ISBN << "] for quantity: [" << -tempEntry.quantity << "]" << endl;
+            cout << "[cost] " << setiosflags(ios::fixed) << setprecision(2) << -tempEntry.totalPrice << endl;
+        }
+        else {
+            cout << "[buy] during " << tempEntry.dealTime;
+            cout << "[operator] ";
+            if (tempEntry.operatorAuthority == 1)cout << "customer";
+            else if (tempEntry.operatorAuthority == 3)cout << "employee";
+            else cout << "boss";
+            cout << " [" << tempEntry.userID << "] buy ISBN: [" << tempEntry.ISBN << "[ for quantity: [" << tempEntry.quantity << "]" << endl;
+            cout << "[income] " << setiosflags(ios::fixed) << setprecision(2) << tempEntry.totalPrice << endl;
+        }
+    }
+    cout << "----------------------------------------" << endl;
+    fs.close();
 }
 
 void reportEmployee() {
-    cout << "[function] report employee :\n";
+    cout << "----------------------------------------" << endl;
+    cout << "[function] report employee:" << endl;
     vector<string> staff;
     getStaff(staff);
     int cnt = 0;
     for (const string &i:staff) {
-        cout << "staff No." << ++cnt << " :\n";
-        reportMyself(i);
+        cout << "[cnt] staff No." << ++cnt << ":" << endl;
+        reportMyself(i, false);
+        cout << endl;
     }
+    cout << "----------------------------------------" << endl;
 }
 
-void reportMyself(string userID) {
-    //useradd(4 arguments) select(1) modify(5) import(2)
+void reportMyself(const string &userID, bool flag) {
+    //useradd(4 user-id, passwd, authority, name)
+    //select(1 ISBN)
+    //modify(5 ISBN, name, author, keyword, price)
+    //import(2 quantity, cost_price)
+    //show(4 ISBN, name, author, keyword)
+    //buy(2 ISBN, quantity)
+    cout << "--------------------" << endl;
+    if (flag) cout << "[function] report myself:" << endl;
+    cout << "[user-id] " << userID << endl;
+    int cnt = 0;
+    string staffCmd;
+    fstream fs;
+    fs.open(STAFF_LOG_FILENAME, ios::in);
+    while (getline(fs, staffCmd)) {
+        stringstream ss(staffCmd);
+        string nowUserID;
+        ss >> nowUserID;
+        if (nowUserID != userID)continue;
+        cout << endl;
+        string cmdType;
+        ss >> cmdType;
+        cout << "[cnt] No." << ++cnt << " operation:" << endl;
+        if (cmdType == "useradd") {
+            string user_id, passwd, authority, name;
+            ss >> user_id >> passwd >> authority >> name;
+            cout << "[useradd]" << endl;
+            cout << "[user-id] " << user_id << endl;
+            cout << "[passwd] " << passwd << endl;
+            cout << "[authority] " << authority << endl;
+            cout << "[name] " << name << endl;
+        }
+        else if (cmdType == "select") {
+            string ISBN;
+            ss >> ISBN;
+            cout << "[select]" << endl;
+            cout << "[ISBN] " << ISBN << endl;
+        }
+        else if (cmdType == "modify") {
+            string ISBN, name, author, keyword, price;
+            ss >> ISBN >> name >> author >> keyword >> price;
+            cout << "[modify]" << endl;
+            cout << "[ISBN] " << ISBN << endl;
+            cout << "[name] " << name << endl;
+            cout << "[author] " << author << endl;
+            cout << "[keyword] " << keyword << endl;
+            cout << "[price] " << price << endl;
+        }
+        else if (cmdType == "import") {
+            string quantity, cost_price;
+            ss >> quantity >> cost_price;
+            cout << "[import]" << endl;
+            cout << "[quantity] " << quantity << endl;
+            cout << "[cost_price] " << cost_price << endl;
+        }
+        else if (cmdType == "show") {
+            string ISBN, name, author, keyword;
+            ss >> ISBN >> name >> author >> keyword;
+            cout << "[show]" << endl;
+            cout << "[ISBN] " << ISBN << endl;
+            cout << "[name] " << name << endl;
+            cout << "[author] " << author << endl;
+            cout << "[keyword] " << keyword << endl;
+        }
+        else if (cmdType == "buy") {
+            string ISBN, quantity;
+            ss >> ISBN >> quantity;
+            cout << "[buy]" << endl;
+            cout << "[ISBN] " << ISBN << endl;
+            cout << "[quantity] " << quantity << endl;
+        }
+    }
+    if (flag)cout << "[error] you have no operation" << endl;
+    else {
+        if (cnt == 0)cout << "[error] this employee has no operation" << endl;
+    }
+    cout << "--------------------" << endl;
+    fs.close();
 }
 
 void showLog() {
-    fstream fs;
     string log;
+    fstream fs;
     fs.open(LOG_FILENAME, ios::in);
-    while (getline(fs, log))cout << log << "\n";
-    cout.flush();
+    while (getline(fs, log))cout << log << endl;
     fs.close();
 }
 

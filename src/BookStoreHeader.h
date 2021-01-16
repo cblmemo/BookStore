@@ -17,6 +17,8 @@ using std::stringstream;
 using std::cin;
 using std::sort;
 using std::find;
+using std::setiosflags;
+using std::setprecision;
 
 //file name
 #define LOG_FILENAME "log.dat"
@@ -37,14 +39,15 @@ using std::find;
 
 //error message
 #define REMAINS_ERROR_MESSAGE "redundant information"//all
-#define INADEQUATE_AUTHORITY_MESSAGE "inadequate authority"//su
-#define WRONG_PASSWORD_MESSAGE "password wrong"//su
+#define INADEQUATE_AUTHORITY_MESSAGE "inadequate authority"//all
+#define WRONG_PASSWORD_MESSAGE "password wrong"//su, passwd
 #define NO_USER_LOGIN_NOW_MESSAGE "no user login now"//logout
 #define DELETE_ROOT_ACCOUNT_MESSAGE "cannot delete root account"//delete
 #define WRONG_OLD_PASSWORD_MESSAGE "old password wrong"//passwd
 #define NO_BOOK_SELECTED_MESSAGE "no book was selected"//modify, import
 #define INEXIST_BOOK_MESSAGE "this book doesn't exist"//buy
 #define NO_ENOUGH_INVENTORY_MESSAGE "no enough inventory"//buy
+#define BOSS_REPORT_ITSELF_MESSAGE "boss trying to report itself"//report myself
 #define UNKNOWN_ERROR_MESSAGE "unknown error"
 
 //enum type:-----------\/
@@ -99,15 +102,17 @@ public:
 
 class Entry {
 public:
-    char dealTime[40];
+    char dealTime[40] = {0};
     char ISBN[20] = {0};
+    char userID[30] = {0};
+    int operatorAuthority = -1;
     int quantity = 0;//positive represent buy(income), negative represent import(expense)
     double totalPrice = 0;//positive represent buy(income), negative represent import(expense)
 
 public:
     Entry();
     
-    Entry(const string &ISBN_, int _quantity, double _totalPrice);
+    Entry(const string &ISBN_, const string &_userID, int _operatorAuthority, int _quantity, double _totalPrice);
 };
 
 //class:---------------/\
@@ -124,9 +129,9 @@ void initialize();
 
 //commandFunction:-----\/
 
-void splitKeyWord(string keyWordStr, vector<string> &keyWord);
+void splitKeyWord(const string &keyWordStr, vector<string> &keyWord);
 
-argumentType getArgumentType(commandType type, string argument);
+argumentType getArgumentType(commandType type, const string &argument);
 
 void deleteArgumentType(string &argument, argumentType type, commandType _type);
 
@@ -138,9 +143,9 @@ int nowAuthority();
 
 void authorityCheck(int requirements, commandType type);
 
-void argumentCheck(string argument, string argumentName, commandType type, int maxsize);
+void argumentCheck(const string &argument, const string &argumentNameStr, commandType type, int maxsize);
 
-void runCommand(string cmd);
+void runCommand(const string &cmd);
 
 void entryRecord(const Entry &o);
 
@@ -163,7 +168,7 @@ void reportFinance();
 
 void reportEmployee();
 
-void reportMyself(string userID);
+void reportMyself(const string &userID, bool flag);
 
 void showLog();
 

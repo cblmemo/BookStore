@@ -44,6 +44,7 @@ void Administrator::runProgramme() {
             else if (ex.errType == NOBOOKSELECTED)logContent += NO_BOOK_SELECTED_MESSAGE;
             else if (ex.errType == INEXISTBOOK)logContent += INEXIST_BOOK_MESSAGE;
             else if (ex.errType == NOENOUGHINVENTORY)logContent += NO_ENOUGH_INVENTORY_MESSAGE;
+            else if (ex.errType == BOSSREPORTITSELF)logContent += BOSS_REPORT_ITSELF_MESSAGE;
             else if (ex.errType == UNKNOWNERROR) logContent += UNKNOWN_ERROR_MESSAGE;
             logContent += "\n";
             logRecord(logContent, cmd);
