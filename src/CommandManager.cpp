@@ -4,7 +4,7 @@
 
 #include "BookStoreHeader.h"
 
-#define debug
+//#define debug
 //#define showLogContent
 #define customCommand
 
@@ -207,6 +207,7 @@ void runCommand(string cmd) {
         logRecord(logContent, cmd);
     }
     else if (cmdType == "passwd") {
+        authorityCheck(1, PASSWD);
         string nowUser = accountStack[accountStack.size() - 1].userID;
         if (nowUser == "root") {
             string user_id, newPasswd;
@@ -215,7 +216,6 @@ void runCommand(string cmd) {
             if (!remains.empty())throw invalidCommand(PASSWD, REMAINS);
             argumentCheck(user_id, "user-id", PASSWD, 30);
             argumentCheck(newPasswd, "new-passwd", PASSWD, 30);
-            authorityCheck(1, PASSWD);
             changePassword(user_id, newPasswd);
             logContent += "[log] [root] change password successful.\n";
             logContent += "user-id: " + user_id + "\n";
@@ -230,7 +230,6 @@ void runCommand(string cmd) {
             argumentCheck(user_id, "user-id", PASSWD, 30);
             argumentCheck(newPasswd, "new-passwd", PASSWD, 30);
             argumentCheck(oldPasswd, "old-passwd", PASSWD, 30);
-            authorityCheck(1, PASSWD);
             changePassword(user_id, newPasswd, oldPasswd);
             logContent += "[log] change password successful.\n";
             logContent += "user-id: " + user_id + "\n";
@@ -286,9 +285,15 @@ void runCommand(string cmd) {
             oldISBN = nowSelectedBook.ISBN;
             Element oldIndex(nowSelected(), oldISBN);
             indexISBN.deleteElement(oldIndex);
-            Element newIndex(nowSelected(), arguments[0]);
-            indexISBN.addElement(newIndex);
-            strcpy(nowSelectedBook.ISBN, arguments[0].c_str());
+            vector<int> possibleOffset;
+            indexISBN.findElement(arguments[0], possibleOffset);
+            if (possibleOffset.empty()) {
+                Element newIndex(nowSelected(), arguments[0]);
+                indexISBN.addElement(newIndex);
+                strcpy(nowSelectedBook.ISBN, arguments[0].c_str());
+                writeData<Book>(BOOK, nowSelectedBook, nowSelected());
+            }
+            else throw invalidCommand(MODIFY, WRONGFORMAT, "ISBN");
         }
         if (haveThisArgument[1]) {
             argumentCheck(arguments[1], "name", MODIFY, 60);
@@ -304,6 +309,7 @@ void runCommand(string cmd) {
                 indexName.addElement(newIndex);
             }
             strcpy(nowSelectedBook.name, arguments[1].c_str());
+            writeData<Book>(BOOK, nowSelectedBook, nowSelected());
         }
         if (haveThisArgument[2]) {
             argumentCheck(arguments[2], "author", MODIFY, 60);
@@ -319,6 +325,7 @@ void runCommand(string cmd) {
                 indexAuthor.addElement(newIndex);
             }
             strcpy(nowSelectedBook.author, arguments[2].c_str());
+            writeData<Book>(BOOK, nowSelectedBook, nowSelected());
         }
         if (haveThisArgument[3]) {
             argumentCheck(arguments[3], "keyword", MODIFY, 60);
@@ -345,6 +352,7 @@ void runCommand(string cmd) {
                 }
             }
             strcpy(nowSelectedBook.keyword, arguments[3].c_str());
+            writeData<Book>(BOOK, nowSelectedBook, nowSelected());
         }
         if (haveThisArgument[4]) {
             if (arguments[4].empty())throw invalidCommand(MODIFY, MISSING, "price");
@@ -359,8 +367,8 @@ void runCommand(string cmd) {
             double price;
             ss_ >> price;
             nowSelectedBook.price = price;
+            writeData<Book>(BOOK, nowSelectedBook, nowSelected());
         }
-        writeData<Book>(BOOK, nowSelectedBook, nowSelected());
         
         logContent += "[log] modify book successful.\n";
         if (haveThisArgument[0]) logContent += "ISBN: from [" + oldISBN + "] to [" + arguments[0] + "]\n";
@@ -519,7 +527,9 @@ void runCommand(string cmd) {
         stringstream ss0(_quantity);
         ss0 >> quantity;
         double singlePrice = buy(ISBN, quantity);
-        Entry temp(ISBN, quantity, quantity * singlePrice);
+        double totalPrice = singlePrice * quantity;
+        cout << std::setiosflags(ios::fixed) << std::setprecision(2) << totalPrice << "\n";
+        Entry temp(ISBN, quantity, totalPrice);
         entryRecord(temp);
         logContent += "[log] buy books successful.\n";
         logContent += "ISBN: " + ISBN + "\n";
