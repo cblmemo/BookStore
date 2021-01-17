@@ -412,7 +412,7 @@ void runCommand(const string &cmd) {
         ss1 >> quantity;
         ss2 >> cost_price;
         authorityCheck(3, IMPORT);
-        //if (quantity >= 100000)throw invalidCommand(BUY, WRONGFORMAT, "quantity");
+        if (quantity >= 1000000)throw invalidCommand(BUY, WRONGFORMAT, "quantity");
         import(quantity, cost_price);
         string ISBN = readData<Book>(BOOK, nowSelected()).ISBN;
         string user_id = accountStack[accountStack.size() - 1].userID;
@@ -535,7 +535,7 @@ void runCommand(const string &cmd) {
         int quantity;
         stringstream ss0(_quantity);
         ss0 >> quantity;
-        //if (quantity >= 100000)throw invalidCommand(BUY, WRONGFORMAT, "quantity");
+        if (quantity >= 1000000)throw invalidCommand(BUY, WRONGFORMAT, "quantity");
         double singlePrice = buy(ISBN, quantity);
         double totalPrice = singlePrice * quantity;
         cout << setiosflags(ios::fixed) << setprecision(2) << totalPrice << "\n";
