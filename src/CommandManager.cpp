@@ -531,14 +531,13 @@ void runCommand(const string &cmd) {
         ss >> ISBN >> _quantity;
         ss >> remains;
         if (!remains.empty())throw invalidCommand(BUY, REMAINS);
-        if (_quantity.size() > 5)throw invalidCommand(BUY, WRONGFORMAT, "quantity");
         for (auto i:_quantity)if (i > '9' || i < '0')throw invalidCommand(BUY, WRONGFORMAT, "quantity");
         argumentCheck(ISBN, "ISBN", BUY, 20);
         authorityCheck(1, BUY);
         int quantity;
         stringstream ss0(_quantity);
         ss0 >> quantity;
-        if (quantity >= 100000)throw invalidCommand(BUY, WRONGFORMAT, "quantity");
+        //if (quantity >= 100000)throw invalidCommand(BUY, WRONGFORMAT, "quantity");
         double singlePrice = buy(ISBN, quantity);
         double totalPrice = singlePrice * quantity;
         cout << setiosflags(ios::fixed) << setprecision(2) << totalPrice << "\n";
