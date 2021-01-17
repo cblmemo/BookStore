@@ -96,7 +96,6 @@ void argumentCheck(const string &argument, const string &argumentNameStr, comman
 
 void runCommand(const string &cmd) {
     if (cmd == "exit" || cmd == "quit")exit(0);
-    //cout << "# " << cmd << "\n";
     stringstream ss(cmd);
     string cmdType;
     string logContent;
@@ -401,7 +400,6 @@ void runCommand(const string &cmd) {
         ss >> _quantity >> _cost_price;
         ss >> remains;
         if (!remains.empty())throw invalidCommand(IMPORT, REMAINS);
-        if (_quantity.size() > 5)throw invalidCommand(IMPORT, WRONGFORMAT, "quantity");
         for (auto i:_quantity)if (i > '9' || i < '0')throw invalidCommand(IMPORT, WRONGFORMAT, "quantity");
         bool point = false;
         for (auto i:_cost_price) {

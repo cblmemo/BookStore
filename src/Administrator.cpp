@@ -10,6 +10,7 @@ void Administrator::runProgramme() {
     while (getline(cin, cmd)) {
         try {
             runCommand(cmd);
+            //cout << "# " << cmd << "\n";
         } catch (invalidCommand &ex) {
             cout << "Invalid\n";
             string logContent;
