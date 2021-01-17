@@ -16,7 +16,8 @@
 
 #define BLOCK_SIZE 320
 #define SPLIT_REMAIN 160
-#define MAX_KEY_LENGTH 60
+#define MAX_KEY_LENGTH 80
+#define MERGE_THRESHOLD 288
 
 using std::string;
 using std::fstream;
@@ -66,7 +67,7 @@ private:
     void splitBlock(int offset);
 
 public:
-    explicit UnrolledLinkedList(const string &_filename) : filename(_filename){}
+    explicit UnrolledLinkedList(const string &_filename) : filename(_filename) {}
     
     void findElement(const string &key, vector<int> &result);
     

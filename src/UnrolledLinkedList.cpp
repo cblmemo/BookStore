@@ -268,7 +268,7 @@ void UnrolledLinkedList::deleteElement(const Element &o) {
     fin.close();
     fout.close();
     
-    if (next >= 0 && ((len + nextLen) <= BLOCK_SIZE))mergeBlock(cur, next);
+    if (next >= 0 && ((len + nextLen) <= MERGE_THRESHOLD))mergeBlock(cur, next);
 }
 
 #ifdef debug

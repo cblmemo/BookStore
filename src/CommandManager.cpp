@@ -96,7 +96,7 @@ void argumentCheck(const string &argument, const string &argumentNameStr, comman
 
 void runCommand(const string &cmd) {
     if (cmd == "exit" || cmd == "quit")exit(0);
-    //cout << "[debug] " << cmd << "\n";
+    //cout << "# " << cmd << "\n";
     stringstream ss(cmd);
     string cmdType;
     string logContent;
@@ -416,6 +416,7 @@ void runCommand(const string &cmd) {
         ss1 >> quantity;
         ss2 >> cost_price;
         authorityCheck(3, IMPORT);
+        if (quantity >= 100000)throw invalidCommand(BUY, WRONGFORMAT, "quantity");
         import(quantity, cost_price);
         string ISBN = readData<Book>(BOOK, nowSelected()).ISBN;
         string user_id = accountStack[accountStack.size() - 1].userID;
@@ -539,9 +540,10 @@ void runCommand(const string &cmd) {
         int quantity;
         stringstream ss0(_quantity);
         ss0 >> quantity;
+        if (quantity >= 100000)throw invalidCommand(BUY, WRONGFORMAT, "quantity");
         double singlePrice = buy(ISBN, quantity);
         double totalPrice = singlePrice * quantity;
-        cout << std::setiosflags(ios::fixed) << std::setprecision(2) << totalPrice << "\n";
+        cout << setiosflags(ios::fixed) << setprecision(2) << totalPrice << "\n";
         string user_id = accountStack[accountStack.size() - 1].userID;
         Entry temp(ISBN, user_id, nowAuthority(), quantity, totalPrice);
         entryRecord(temp);
