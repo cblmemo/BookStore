@@ -2,3 +2,5 @@
 /cmake-build-debug/
 /Data
 /Document
+/.idea
+/.gitignore
