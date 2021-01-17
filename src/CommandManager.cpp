@@ -6,7 +6,7 @@
 
 //#define debug
 //#define showLogContent
-#define customCommand
+//#define customCommand
 
 const string argumentName[5] = {"ISBN", "name", "author", "keyword", "price"};
 
@@ -63,9 +63,7 @@ void deleteArgumentType(string &argument, argumentType type, commandType _type) 
         if (argument[pos + 1] != '\"' || argument[argument.size() - 1] != '\"')throw invalidCommand(_type, WRONGFORMAT, argumentName[type]);
         for (int i = pos + 2; i < argument.size() - 1; i++)temp += argument[i];
     }
-    else {
-        for (int i = pos + 1; i < argument.size(); i++)temp += argument[i];
-    }
+    else for (int i = pos + 1; i < argument.size(); i++)temp += argument[i];
     argument = temp;
 }
 
@@ -135,7 +133,7 @@ void runCommand(const string &cmd) {
         logContent += "user-id: " + (string) logoutAccount.userID + "\n";
         logContent += "name: " + (string) logoutAccount.name + "\n";
         logContent += "authority: ";
-        logContent += char(logoutAccount.authority + '0');
+        logContent += (char) (logoutAccount.authority + '0');
         logContent += "\n";
         logRecord(logContent, cmd);
     }
@@ -164,7 +162,7 @@ void runCommand(const string &cmd) {
         logContent += "passwd: " + (string) _addAccount.password + "\n";
         logContent += "name: " + (string) _addAccount.name + "\n";
         logContent += "authority: ";
-        logContent += char(_addAccount.authority + '0');
+        logContent += (char) (_addAccount.authority + '0');
         logContent += "\n";
         logRecord(logContent, cmd);
         if (nowAuthority() == 3)staffLogRecord(cmdType, user_id + " " + passwd + " " + _auth + " " + name);
@@ -189,7 +187,7 @@ void runCommand(const string &cmd) {
         logContent += "passwd: " + (string) _registerAccount.password + "\n";
         logContent += "name: " + (string) _registerAccount.name + "\n";
         logContent += "authority: ";
-        logContent += char(_registerAccount.authority + '0');
+        logContent += (char) (_registerAccount.authority + '0');
         logContent += "\n";
         logRecord(logContent, cmd);
     }
@@ -582,60 +580,60 @@ void runCommand(const string &cmd) {
         showLog();
     }
 #ifdef customCommand
-    else if (cmdType == "cmd") {
-        fstream fs;
-        string _cmd;
-        fs.open(COMMAND_FILENAME, ios::in);
-        while (getline(fs, _cmd))cout << _cmd << "\n";
-        cout.flush();
-        fs.close();
-    }
-    else if (cmdType == "clear") {
-        fstream fs;
-        //create file
-        fs.open(LOG_FILENAME, ios::out);
-        fs.close();
-        fs.open(COMMAND_FILENAME, ios::out);
-        fs.close();
-        fs.open(STAFF_DATA_FILENAME, ios::out);
-        fs.close();
-        fs.open(STAFF_LOG_FILENAME, ios::out);
-        fs.close();
-        fs.open(BILL_FILENAME, ios::out);
-        fs.close();
-        fs.open(BASIC_DATA_FILENAME, ios::out);
-        fs.close();
-        fs.open(USER_DATA_FILENAME, ios::out);
-        fs.close();
-        fs.open(BOOK_DATA_FILENAME, ios::out);
-        fs.close();
-        fs.open(INDEX_USERID_FILENAME, ios::out);
-        fs.close();
-        fs.open(INDEX_ISBN_FILENAME, ios::out);
-        fs.close();
-        fs.open(INDEX_AUTHOR_FILENAME, ios::out);
-        fs.close();
-        fs.open(INDEX_NAME_FILENAME, ios::out);
-        fs.close();
-        fs.open(INDEX_KEYWORD_FILENAME, ios::out);
-        fs.close();
-        
-        //create root account
-        UserAccount root(7, "root", "root", "sjtu");
-        int offset = writeData<UserAccount>(USER, root);
-        Element temp(offset, "root");
-        indexUserID.addElement(temp);
-        
-        //set basic data
-        bookNumber = 0;
-        totalTransaction = 0;
-        totalExpense = 0;
-        totalIncome = 0;
-        writeBasicData<int>(BOOKNUMBER, bookNumber);
-        writeBasicData<int>(TRANSACTION, totalTransaction);
-        writeBasicData<double>(EXPENSE, totalExpense);
-        writeBasicData<double>(INCOME, totalIncome);
-    }
+        else if (cmdType == "cmd") {
+            fstream fs;
+            string _cmd;
+            fs.open(COMMAND_FILENAME, ios::in);
+            while (getline(fs, _cmd))cout << _cmd << "\n";
+            cout.flush();
+            fs.close();
+        }
+        else if (cmdType == "clear") {
+            fstream fs;
+            //create file
+            fs.open(LOG_FILENAME, ios::out);
+            fs.close();
+            fs.open(COMMAND_FILENAME, ios::out);
+            fs.close();
+            fs.open(STAFF_DATA_FILENAME, ios::out);
+            fs.close();
+            fs.open(STAFF_LOG_FILENAME, ios::out);
+            fs.close();
+            fs.open(BILL_FILENAME, ios::out);
+            fs.close();
+            fs.open(BASIC_DATA_FILENAME, ios::out);
+            fs.close();
+            fs.open(USER_DATA_FILENAME, ios::out);
+            fs.close();
+            fs.open(BOOK_DATA_FILENAME, ios::out);
+            fs.close();
+            fs.open(INDEX_USERID_FILENAME, ios::out);
+            fs.close();
+            fs.open(INDEX_ISBN_FILENAME, ios::out);
+            fs.close();
+            fs.open(INDEX_AUTHOR_FILENAME, ios::out);
+            fs.close();
+            fs.open(INDEX_NAME_FILENAME, ios::out);
+            fs.close();
+            fs.open(INDEX_KEYWORD_FILENAME, ios::out);
+            fs.close();
+            
+            //create root account
+            UserAccount root(7, "root", "root", "sjtu");
+            int offset = writeData<UserAccount>(USER, root);
+            Element temp(offset, "root");
+            indexUserID.addElement(temp);
+            
+            //set basic data
+            bookNumber = 0;
+            totalTransaction = 0;
+            totalExpense = 0;
+            totalIncome = 0;
+            writeBasicData<int>(BOOKNUMBER, bookNumber);
+            writeBasicData<int>(TRANSACTION, totalTransaction);
+            writeBasicData<double>(EXPENSE, totalExpense);
+            writeBasicData<double>(INCOME, totalIncome);
+        }
 #endif
     else throw invalidCommand(UNKNOWN, UNKNOWNERROR);
 }

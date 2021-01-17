@@ -10,9 +10,9 @@ void Administrator::runProgramme() {
     while (getline(cin, cmd)) {
         try {
             runCommand(cmd);
-            //cout << "# " << cmd << "\n";
         } catch (invalidCommand &ex) {
             cout << "Invalid\n";
+            
             string logContent;
             if (ex.cmdType == SU) logContent += "[log] login failed.\n";
             else if (ex.cmdType == LOGOUT) logContent += "[log] logout failed.\n";
@@ -50,13 +50,6 @@ void Administrator::runProgramme() {
             else if (ex.errType == UNKNOWNERROR) logContent += UNKNOWN_ERROR_MESSAGE;
             logContent += "\n";
             logRecord(logContent, cmd);
-            
-            //debug
-//            if (ex.cmdType == IMPORT) {
-//                if (ex.errType == REMAINS)cout << "# import " << REMAINS_ERROR_MESSAGE << endl;
-//                if (ex.errType == WRONGFORMAT)cout << "# import " << "wrong [" + ex.detail + "] format" << endl;
-//                if (ex.errType == NOBOOKSELECTED)cout << "# import " << NO_BOOK_SELECTED_MESSAGE << endl;
-//            }
         }
     }
 }

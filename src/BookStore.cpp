@@ -34,7 +34,6 @@ Book::Book(double _price, int _quantity, const string &ISBN_, const string &_nam
 
 void Book::show() const {
     cout << ISBN << "\t" << name << "\t" << author << "\t" << keyword << "\t" << setiosflags(ios::fixed) << setprecision(2) << price << "\t" << quantity << "\n";
-    //printf("%s\t%s\t%s\t%s\t%.2lf\t%d\n", ISBN, name, author, keyword, price, quantity);
 }
 
 UserAccount::UserAccount() = default;
