@@ -49,6 +49,13 @@ void Administrator::runProgramme() {
             else if (ex.errType == UNKNOWNERROR) logContent += UNKNOWN_ERROR_MESSAGE;
             logContent += "\n";
             logRecord(logContent, cmd);
+            
+            //debug
+//            if (ex.cmdType == IMPORT) {
+//                if (ex.errType == REMAINS)cout << "# import " << REMAINS_ERROR_MESSAGE << endl;
+//                if (ex.errType == WRONGFORMAT)cout << "# import " << "wrong [" + ex.detail + "] format" << endl;
+//                if (ex.errType == NOBOOKSELECTED)cout << "# import " << NO_BOOK_SELECTED_MESSAGE << endl;
+//            }
         }
     }
 }

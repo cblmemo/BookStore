@@ -416,7 +416,7 @@ void runCommand(const string &cmd) {
         ss1 >> quantity;
         ss2 >> cost_price;
         authorityCheck(3, IMPORT);
-        if (quantity >= 100000)throw invalidCommand(BUY, WRONGFORMAT, "quantity");
+        //if (quantity >= 100000)throw invalidCommand(BUY, WRONGFORMAT, "quantity");
         import(quantity, cost_price);
         string ISBN = readData<Book>(BOOK, nowSelected()).ISBN;
         string user_id = accountStack[accountStack.size() - 1].userID;
