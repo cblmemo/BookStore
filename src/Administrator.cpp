@@ -41,6 +41,7 @@ void Administrator::runProgramme() {
             else if (ex.errType == NOUSERLOGIN) logContent += NO_USER_LOGIN_NOW_MESSAGE;
             else if (ex.errType == USERALREADYEXIST) logContent += "user-id: [" + ex.detail + "] already exist.";
             else if (ex.errType == DELETEROOTACCOUNT) logContent += DELETE_ROOT_ACCOUNT_MESSAGE;
+            else if (ex.errType == DELETEALREADYLOGINACCOUNT) logContent += DELETE_ALREADY_LOGIN_ACCOUNT_MESSAGE;
             else if (ex.errType == WRONGOLDPASSWORD) logContent += WRONG_OLD_PASSWORD_MESSAGE;
             else if (ex.errType == NOBOOKSELECTED)logContent += NO_BOOK_SELECTED_MESSAGE;
             else if (ex.errType == REPEATEDKEYWORDS)logContent += REPEATED_KEYWORDS_MESSAGE;

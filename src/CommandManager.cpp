@@ -974,6 +974,8 @@ void deleteAccount(const string &userID) {
     vector<int> possibleOffset;
     indexUserID.findElement(userID, possibleOffset);
     if (possibleOffset.empty())throw invalidCommand(DELETE, INEXISTACCOUNT, userID);
+    UserAccount deletedAccount(readData<UserAccount>(USER, possibleOffset[0]));
+    if (find(accountStack.begin(), accountStack.end(), deletedAccount) != accountStack.end())throw invalidCommand(DELETE, DELETEALREADYLOGINACCOUNT);
     Element temp(possibleOffset[0], userID);
     indexUserID.deleteElement(temp);
 }

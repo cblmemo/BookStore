@@ -43,6 +43,7 @@ using std::setprecision;
 #define WRONG_PASSWORD_MESSAGE "password wrong"//su, passwd
 #define NO_USER_LOGIN_NOW_MESSAGE "no user login now"//logout
 #define DELETE_ROOT_ACCOUNT_MESSAGE "cannot delete root account"//delete
+#define DELETE_ALREADY_LOGIN_ACCOUNT_MESSAGE "cannot delete account that is already login"//delete
 #define WRONG_OLD_PASSWORD_MESSAGE "old password wrong"//passwd
 #define NO_BOOK_SELECTED_MESSAGE "no book was selected"//modify, import
 #define REPEATED_KEYWORDS_MESSAGE "repeated keywords"//modify

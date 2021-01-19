@@ -23,7 +23,8 @@ enum errorType {
     WRONGPASSWORD,//login
     NOUSERLOGIN,//logout
     USERALREADYEXIST,//useradd, register
-    DELETEROOTACCOUNT,
+    DELETEROOTACCOUNT,//delete
+    DELETEALREADYLOGINACCOUNT,//delete
     WRONGOLDPASSWORD,//passwd
     NOBOOKSELECTED,//modify, import
     REPEATEDKEYWORDS,//modify
