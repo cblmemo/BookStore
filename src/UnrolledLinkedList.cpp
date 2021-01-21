@@ -199,8 +199,8 @@ void UnrolledLinkedList::addElement(const Element &o) {
     for (int i = len - 1; i >= pos; i--)tempBlock.array[i + 1] = tempBlock.array[i];
     tempBlock.array[pos] = o;
     tempBlock.length = ++len;
-    fout.seekg(cur);
-    fout.write(reinterpret_cast<char *>(&tempBlock), sizeof(Block));
+    fout.seekp(cur);
+    fout.write(reinterpret_cast<const char *>(&tempBlock), sizeof(Block));
     
     fin.close();
     fout.close();
@@ -255,8 +255,8 @@ void UnrolledLinkedList::deleteElement(const Element &o) {
     
     for (int i = pos; i < len; i++) tempBlock.array[i] = tempBlock.array[i + 1];
     tempBlock.length = --len;
-    fout.seekg(cur);
-    fout.write(reinterpret_cast<char *>(&tempBlock), sizeof(Block));
+    fout.seekp(cur);
+    fout.write(reinterpret_cast<const char *>(&tempBlock), sizeof(Block));
     
     next = nextBlock(cur);
     int nextLen;
