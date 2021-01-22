@@ -500,6 +500,7 @@ void runCommand(const string &cmd) {
                     argumentCheck(argument, "keyword", SHOW, 60);
                     vector<string> keyWord;
                     splitKeyWord(argument, keyWord);
+                    if (keyWord.size() > 1 || keyWord.empty())throw invalidCommand(SHOW, WRONGFORMAT, "arguments");
                     for (const string &i:keyWord) {
                         vector<int> temp;
                         indexKeyWord.findElement(i, temp);
