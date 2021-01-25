@@ -99,7 +99,10 @@ void runCommand(const string &cmd) {
     string logContent;
     string remains;
     ss >> cmdType;
-    if (cmdType == "su") {
+    if (cmdType.empty()) {
+        //do nothing...
+    }
+    else if (cmdType == "su") {
         string user_id, passwd;
         ss >> user_id >> passwd;
         ss >> remains;
