@@ -46,10 +46,10 @@ UserAccount::UserAccount(int _authority, const string &_userID, const string &_n
 
 bool UserAccount::operator==(const UserAccount &o) const {
     if (authority != o.authority)return false;
-    if (strcmp(userID, o.userID) != 0)return false;
-    if (strcmp(name, o.name) != 0)return false;
-    if (strcmp(password, o.password) != 0)return false;
-    return true;
+    else if (strcmp(userID, o.userID) != 0)return false;
+    else if (strcmp(name, o.name) != 0)return false;
+    else if (strcmp(password, o.password) != 0)return false;
+    else return true;
 }
 
 Entry::Entry() = default;

@@ -102,6 +102,7 @@ public:
     UserAccount(int _authority, const string &_userID, const string &_name, const string &_password);
     
     bool operator==(const UserAccount &o) const;
+    
 };
 
 class Entry {
