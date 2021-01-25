@@ -44,6 +44,14 @@ UserAccount::UserAccount(int _authority, const string &_userID, const string &_n
     strcpy(password, _password.c_str());
 }
 
+bool UserAccount::operator==(const UserAccount &o) const {
+    if (authority != o.authority)return false;
+    if (strcmp(userID, o.userID) != 0)return false;
+    if (strcmp(name, o.name) != 0)return false;
+    if (strcmp(password, o.password) != 0)return false;
+    return true;
+}
+
 Entry::Entry() = default;
 
 Entry::Entry(const string &ISBN_, const string &_userID, int _operatorAuthority, int _quantity, double _totalPrice) : operatorAuthority(_operatorAuthority), quantity(_quantity), totalPrice(_totalPrice) {
