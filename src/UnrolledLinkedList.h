@@ -14,10 +14,10 @@
 #include <vector>
 #include <algorithm>
 
-#define BLOCK_SIZE 320
-#define SPLIT_REMAIN 160
-#define MAX_KEY_LENGTH 80
-#define MERGE_THRESHOLD 288
+#define BLOCK_SIZE 1000
+#define SPLIT_REMAIN 500
+#define MAX_KEY_LENGTH 65
+#define MERGE_THRESHOLD 900
 
 using std::string;
 using std::fstream;
