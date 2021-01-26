@@ -17,7 +17,7 @@
 #define BLOCK_SIZE 320
 #define SPLIT_REMAIN 160
 #define MAX_KEY_LENGTH 65
-#define MERGE_THRESHOLD 160
+#define MERGE_THRESHOLD 288
 
 using std::string;
 using std::fstream;
