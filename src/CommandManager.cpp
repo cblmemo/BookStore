@@ -455,13 +455,6 @@ void runCommand(const string &cmd) {
             if (argument.empty()) {
                 if (bookNumber == 0)cout << "\n";
                 else {
-//                    vector<int> possibleOffset;
-//                    for (int i = 0; i < bookNumber; i++) possibleOffset.push_back(i * sizeof(Book));
-//                    sort(possibleOffset.begin(), possibleOffset.end(), bookCompare);
-//                    for (int i:possibleOffset) {
-//                        Book temp = readData<Book>(BOOK, i);
-//                        temp.show();
-//                    }
                     vector<Book> allBook;
                     for (int i = 0; i < bookNumber; i++) {
                         Book tempBook = readData<Book>(BOOK, i * sizeof(Book));
@@ -518,12 +511,6 @@ void runCommand(const string &cmd) {
                 }
                 if (possibleOffset.empty())cout << "\n";
                 else {
-                    //sort as ISBN's lexicographical order
-//                    sort(possibleOffset.begin(), possibleOffset.end(), bookCompare);
-//                    for (int i:possibleOffset) {
-//                        Book temp = readData<Book>(BOOK, i);
-//                        temp.show();
-//                    }
                     vector<Book> possibleBook;
                     for (int i:possibleOffset) {
                         Book temp = readData<Book>(BOOK, i);
