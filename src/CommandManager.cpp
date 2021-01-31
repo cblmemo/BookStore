@@ -67,11 +67,6 @@ void deleteArgumentType(string &argument, argumentType type, commandType _type) 
     argument = temp;
 }
 
-bool bookCompare(int offset1, int offset2) {
-    Book book1 = readData<Book>(BOOK, offset1), book2 = readData<Book>(BOOK, offset2);
-    return strcmp(book1.ISBN, book2.ISBN) < 0;
-}
-
 int nowSelected() {
     if (selectedBookOffsetStack.empty())return -1;
     return selectedBookOffsetStack[selectedBookOffsetStack.size() - 1];
@@ -460,13 +455,20 @@ void runCommand(const string &cmd) {
             if (argument.empty()) {
                 if (bookNumber == 0)cout << "\n";
                 else {
-                    vector<int> possibleOffset;
-                    for (int i = 0; i < bookNumber; i++) possibleOffset.push_back(i * sizeof(Book));
-                    sort(possibleOffset.begin(), possibleOffset.end(), bookCompare);
-                    for (int i:possibleOffset) {
-                        Book temp = readData<Book>(BOOK, i);
-                        temp.show();
+//                    vector<int> possibleOffset;
+//                    for (int i = 0; i < bookNumber; i++) possibleOffset.push_back(i * sizeof(Book));
+//                    sort(possibleOffset.begin(), possibleOffset.end(), bookCompare);
+//                    for (int i:possibleOffset) {
+//                        Book temp = readData<Book>(BOOK, i);
+//                        temp.show();
+//                    }
+                    vector<Book> allBook;
+                    for (int i = 0; i < bookNumber; i++) {
+                        Book tempBook = readData<Book>(BOOK, i * sizeof(Book));
+                        allBook.push_back(tempBook);
                     }
+                    sort(allBook.begin(), allBook.end());
+                    for (Book i:allBook)i.show();
                 }
                 logContent += "[log] show all books successful.\n";
                 logRecord(logContent, cmd);
@@ -517,11 +519,18 @@ void runCommand(const string &cmd) {
                 if (possibleOffset.empty())cout << "\n";
                 else {
                     //sort as ISBN's lexicographical order
-                    sort(possibleOffset.begin(), possibleOffset.end(), bookCompare);
+//                    sort(possibleOffset.begin(), possibleOffset.end(), bookCompare);
+//                    for (int i:possibleOffset) {
+//                        Book temp = readData<Book>(BOOK, i);
+//                        temp.show();
+//                    }
+                    vector<Book> possibleBook;
                     for (int i:possibleOffset) {
                         Book temp = readData<Book>(BOOK, i);
-                        temp.show();
+                        possibleBook.push_back(temp);
                     }
+                    sort(possibleBook.begin(), possibleBook.end());
+                    for (Book i:possibleBook)i.show();
                 }
                 logRecord(logContent, cmd);
                 if (nowAuthority() == 3)staffLogRecord(cmdType, argForLog);

@@ -36,6 +36,10 @@ void Book::show() const {
     cout << ISBN << "\t" << name << "\t" << author << "\t" << keyword << "\t" << setiosflags(ios::fixed) << setprecision(2) << price << "\t" << quantity << "\n";
 }
 
+bool Book::operator<(const Book &o) const {
+    return strcmp(ISBN, o.ISBN) < 0;
+}
+
 UserAccount::UserAccount() = default;
 
 UserAccount::UserAccount(int _authority, const string &_userID, const string &_name, const string &_password) : authority(_authority) {

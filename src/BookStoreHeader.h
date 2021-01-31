@@ -87,6 +87,8 @@ public:
     Book(double _price, int _quantity, const string &ISBN_, const string &_name, const string &_author, const string &_keyword);
     
     void show() const;
+    
+    bool operator<(const Book &o) const;
 };
 
 class UserAccount {
@@ -138,8 +140,6 @@ void splitKeyWord(const string &keyWordStr, vector<string> &keyWord);
 argumentType getArgumentType(commandType type, const string &argument);
 
 void deleteArgumentType(string &argument, argumentType type, commandType _type);
-
-bool bookCompare(int offset1, int offset2);
 
 int nowSelected();
 
