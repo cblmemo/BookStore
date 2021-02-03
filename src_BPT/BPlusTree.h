@@ -7,6 +7,13 @@
 
 #include "MemoryPool.h"
 
+#include <iostream>
+#include <vector>
+#include <algorithm>
+
+using std::cerr;
+using std::cout;
+using std::endl;
 using std::pair;
 using std::vector;
 using std::upper_bound;
@@ -17,7 +24,7 @@ using RainyMemory::MemoryPool;
 #define debug
 
 namespace RainyMemory {
-    template<class key, class data, int M = 100, int L = 100>
+    template<class key, class data, int M = 1000, int L = 1000>
     class BPlusTree {
     private:
         class leafNode;
@@ -93,9 +100,11 @@ namespace RainyMemory {
                 tempNode.rightBrother = rightBrother;
                 tempNode.father = father;
                 tempNode.offset = tree->leafPool->tellWritePoint();
-                leafNode tempRightNode = tree->leafPool->read(rightBrother);
-                tempRightNode.leftBrother = tempNode.offset;
-                tree->leafPool->update(tempRightNode, tempRightNode.offset);
+                if (rightBrother >= 0) {
+                    leafNode tempRightNode = tree->leafPool->read(rightBrother);
+                    tempRightNode.leftBrother = tempNode.offset;
+                    tree->leafPool->update(tempRightNode, tempRightNode.offset);
+                }
                 rightBrother = tempNode.offset;
                 for (int i = MIN_RECORD_NUM; i < MAX_RECORD_NUM; i++) {
                     tempNode.leafKey[i - MIN_RECORD_NUM] = leafKey[i];
@@ -154,9 +163,11 @@ namespace RainyMemory {
             void mergeLeft(BPlusTree *tree, leafNode &leftNode, internalNode &fatherNode) {
                 //update left/right brother
                 leftNode.rightBrother = rightBrother;
-                leafNode tempRightNode = tree->leafPool->read(rightBrother);
-                tempRightNode.leftBrother = leftBrother;
-                tree->leafPool->update(tempRightNode, tempRightNode.offset);
+                if (rightBrother >= 0) {
+                    leafNode tempRightNode = tree->leafPool->read(rightBrother);
+                    tempRightNode.leftBrother = leftBrother;
+                    tree->leafPool->update(tempRightNode, tempRightNode.offset);
+                }
                 
                 //update fatherNode info
                 fatherNode.keyNumber--;//erase last element
@@ -176,9 +187,11 @@ namespace RainyMemory {
             void mergeRight(BPlusTree *tree, leafNode &rightNode, internalNode &fatherNode, int index) {
                 //update left/right brother
                 rightBrother = rightNode.rightBrother;
-                leafNode tempRightRightNode = tree->leafPool->read(rightNode.rightBrother);
-                tempRightRightNode.leftBrother = offset;
-                tree->leafPool->update(tempRightRightNode, tempRightRightNode.offset);
+                if (rightNode.rightBrother >= 0) {
+                    leafNode tempRightRightNode = tree->leafPool->read(rightNode.rightBrother);
+                    tempRightRightNode.leftBrother = offset;
+                    tree->leafPool->update(tempRightRightNode, tempRightRightNode.offset);
+                }
                 
                 //update fatherNode info
                 //delete fatherNode.nodeKey[index] & fatherNode.childNode[index + 1]
@@ -203,7 +216,7 @@ namespace RainyMemory {
             //return father node need resize
             bool resize(BPlusTree *tree, internalNode &fatherNode, int index) {
                 if (dataNumber < MIN_RECORD_NUM) {
-                    if (index == 0) {
+                    if (index == 0 && rightBrother >= 0) {
                         //try borrow/merge right
                         leafNode rightNode = tree->leafPool->read(rightBrother);
                         if (rightNode.dataNumber > MIN_RECORD_NUM) {
@@ -215,7 +228,7 @@ namespace RainyMemory {
                             return true;
                         }
                     }
-                    else if (index == fatherNode.keyNumber) {
+                    else if (index == fatherNode.keyNumber && leftBrother >= 0) {
                         //try borrow/merge left
                         leafNode leftNode = tree->leafPool->read(leftBrother);
                         if (leftNode.dataNumber > MIN_RECORD_NUM) {
@@ -340,9 +353,11 @@ namespace RainyMemory {
                 tempNode.leftBrother = offset;
                 tempNode.rightBrother = rightBrother;
                 tempNode.offset = tree->internalPool->tellWritePoint();
-                internalNode tempRightNode = tree->internalPool->read(rightBrother);
-                tempRightNode.leftBrother = tempNode.offset;
-                tree->internalPool->update(tempRightNode, tempRightNode.offset);
+                if (rightBrother >= 0) {
+                    internalNode tempRightNode = tree->internalPool->read(rightBrother);
+                    tempRightNode.leftBrother = tempNode.offset;
+                    tree->internalPool->update(tempRightNode, tempRightNode.offset);
+                }
                 rightBrother = tempNode.offset;
                 tempNode.childNodeIsLeaf = childNodeIsLeaf;
                 //delete No.MIN_KEY_NUM key, and return it to upper layer
@@ -448,9 +463,11 @@ namespace RainyMemory {
             void mergeLeft(BPlusTree *tree, internalNode &leftNode, internalNode &fatherNode) {
                 //update left/right brother
                 leftNode.rightBrother = rightBrother;
-                internalNode tempRightNode = tree->internalPool->read(rightBrother);
-                tempRightNode.leftBrother = leftBrother;
-                tree->internalPool->update(tempRightNode, tempRightNode.offset);
+                if (rightBrother >= 0) {
+                    internalNode tempRightNode = tree->internalPool->read(rightBrother);
+                    tempRightNode.leftBrother = leftBrother;
+                    tree->internalPool->update(tempRightNode, tempRightNode.offset);
+                }
                 
                 //transfer data
                 //in the following example, key 4 is fatherNode.nodeKey[keyNumber - 1]
@@ -495,9 +512,11 @@ namespace RainyMemory {
             void mergeRight(BPlusTree *tree, internalNode &rightNode, internalNode &fatherNode, int index) {
                 //update left/right brother
                 rightBrother = rightNode.rightBrother;
-                internalNode tempRightRightNode = tree->internalPool->read(rightNode.rightBrother);
-                tempRightRightNode.leftBrother = offset;
-                tree->internalPool->update(tempRightRightNode, tempRightRightNode.offset);
+                if (rightNode.rightBrother >= 0) {
+                    internalNode tempRightRightNode = tree->internalPool->read(rightNode.rightBrother);
+                    tempRightRightNode.leftBrother = offset;
+                    tree->internalPool->update(tempRightRightNode, tempRightRightNode.offset);
+                }
                 
                 //transfer data
                 //in the following example, key 4 is fatherNode.nodeKey[index]
@@ -556,7 +575,7 @@ namespace RainyMemory {
             //return father node need resize
             bool resize(BPlusTree *tree, internalNode &fatherNode, int index) {
                 if (keyNumber < MIN_KEY_NUM) {
-                    if (index == 0) {
+                    if (index == 0 && rightBrother >= 0) {
                         //try borrow/merge right
                         internalNode rightNode = tree->internalPool->read(rightBrother);
                         if (rightNode.keyNumber > MIN_KEY_NUM) {
@@ -568,7 +587,7 @@ namespace RainyMemory {
                             return true;
                         }
                     }
-                    else if (index == fatherNode.keyNumber) {
+                    else if (index == fatherNode.keyNumber && leftBrother >= 0) {
                         //try borrow/merge left
                         internalNode leftNode = tree->internalPool->read(leftBrother);
                         if (leftNode.keyNumber > MIN_KEY_NUM) {
@@ -804,7 +823,7 @@ namespace RainyMemory {
         
         //return whether erase is successful
         bool erase(const key &o1, const data &o2) {
-            if (info.size == 0)return false;
+            if (info.size == 0 || info.root == -1)return false;
             else {
                 internalNode rootNode = internalPool->read(info.root);
                 bool deleted = false;
@@ -825,7 +844,9 @@ namespace RainyMemory {
                         }
                     }
                     if (changeIndexFlag)index = std::find(rootNode.childNode, rootNode.childNode + rootNode.keyNumber + 1, targetNode.offset) - rootNode.childNode;
-                    targetNode.resize(this, rootNode, index);
+                    if (deleted) {
+                        if (targetNode.resize(this, rootNode, index))rootNode.resizeRoot(this);
+                    }
                 }
                 else {
                     int index = upper_bound(rootNode.nodeKey, rootNode.nodeKey + rootNode.keyNumber, o1) - rootNode.nodeKey;
@@ -846,7 +867,7 @@ namespace RainyMemory {
         }
         
         void find(const key &o, vector<data> &result) {
-            if (info.size == 0)return;
+            if (info.size == 0 || info.root == -1)return;
             else {
                 internalNode rootNode = internalPool->read(info.root);
                 if (rootNode.childNodeIsLeaf) {

@@ -8,6 +8,7 @@ void Administrator::runProgramme() {
     initialize();
     string cmd;
     while (getline(cin, cmd)) {
+        if (cmd == "exit" || cmd == "quit")break;
         try {
             runCommand(cmd);
         } catch (invalidCommand &ex) {

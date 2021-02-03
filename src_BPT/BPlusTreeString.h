@@ -6,6 +6,7 @@
 #define BPLUSTREE_BPLUSTREESTRING_H
 
 #include <iostream>
+#include <cstring>
 #include <string>
 
 using std::ostream;

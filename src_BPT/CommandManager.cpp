@@ -6,25 +6,80 @@
 
 //#define debug
 //#define showLogContent
-#define customCommand
+//#define customCommand
 
 const string argumentName[5] = {"ISBN", "name", "author", "keyword", "price"};
 
-extern int bookNumber;
-extern int totalTransaction;
-extern double totalExpense;
-extern double totalIncome;
+//basicData: (in basicData.dat)
+int bookNumber;
+int totalTransaction;
+double totalExpense;
+double totalIncome;
 
-extern vector<UserAccount> accountStack;
-extern vector<int> selectedBookOffsetStack;
+//temporaryData:
+vector<UserAccount> accountStack;
+vector<int> selectedBookOffsetStack;
 
-extern BPlusTree indexUserID;
-extern BPlusTree indexISBN;
-extern BPlusTree indexAuthor;
-extern BPlusTree indexName;
-extern BPlusTree indexKeyWord;
+//BPlusTree:
+//in userData.dat
+BPlusTree indexUserID(INDEX_USERID_FILENAME);
+//in bookData.dat
+BPlusTree indexISBN(INDEX_ISBN_FILENAME);
+BPlusTree indexAuthor(INDEX_AUTHOR_FILENAME);
+BPlusTree indexName(INDEX_NAME_FILENAME);
+BPlusTree indexKeyWord(INDEX_KEYWORD_FILENAME);
 
 //commandFunction:-----\/
+
+void initialize() {
+    fstream fs;
+    fs.open(LOG_FILENAME, ios::in);
+    if (!fs) {
+        fs.clear();
+        fs.close();
+        
+        //create file
+        fs.open(LOG_FILENAME, ios::out);
+        fs.close();
+        fs.open(COMMAND_FILENAME, ios::out);
+        fs.close();
+        fs.open(STAFF_DATA_FILENAME, ios::out);
+        fs.close();
+        fs.open(STAFF_LOG_FILENAME, ios::out);
+        fs.close();
+        fs.open(BILL_FILENAME, ios::out);
+        fs.close();
+        fs.open(BASIC_DATA_FILENAME, ios::out);
+        fs.close();
+        fs.open(USER_DATA_FILENAME, ios::out);
+        fs.close();
+        fs.open(BOOK_DATA_FILENAME, ios::out);
+        fs.close();
+        
+        //create root account
+        UserAccount root(7, "root", "root", "sjtu");
+        int offset = writeData<UserAccount>(USER, root);
+        Element temp(offset, "root");
+        indexUserID.addElement(temp);
+        
+        //set basic data
+        bookNumber = 0;
+        totalTransaction = 0;
+        totalExpense = 0;
+        totalIncome = 0;
+        writeBasicData<int>(BOOKNUMBER, bookNumber);
+        writeBasicData<int>(TRANSACTION, totalTransaction);
+        writeBasicData<double>(EXPENSE, totalExpense);
+        writeBasicData<double>(INCOME, totalIncome);
+    }
+    else {
+        //read basic data
+        bookNumber = readBasicData<int>(BOOKNUMBER);
+        totalTransaction = readBasicData<int>(TRANSACTION);
+        totalExpense = readBasicData<double>(EXPENSE);
+        totalIncome = readBasicData<double>(INCOME);
+    }
+}
 
 void splitKeyWord(const string &keyWordStr, vector<string> &keyWord) {
     stringstream ss(keyWordStr);
@@ -88,7 +143,6 @@ void argumentCheck(const string &argument, const string &argumentNameStr, comman
 }
 
 void runCommand(const string &cmd) {
-    if (cmd == "exit" || cmd == "quit")exit(0);
     stringstream ss(cmd);
     string cmdType;
     string logContent;

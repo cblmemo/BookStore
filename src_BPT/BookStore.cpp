@@ -4,25 +4,6 @@
 
 #include "BookStoreHeader.h"
 
-//basicData: (in basicData.dat)
-int bookNumber;
-int totalTransaction;
-double totalExpense;
-double totalIncome;
-
-//temporaryData:
-vector<UserAccount> accountStack;
-vector<int> selectedBookOffsetStack;//-1 represent not select
-
-//UnrolledLinkedList:
-//in userData.dat
-BPlusTree indexUserID(INDEX_USERID_FILENAME);
-//in bookData.dat
-BPlusTree indexISBN(INDEX_ISBN_FILENAME);
-BPlusTree indexAuthor(INDEX_AUTHOR_FILENAME);
-BPlusTree indexName(INDEX_NAME_FILENAME);
-BPlusTree indexKeyWord(INDEX_KEYWORD_FILENAME);
-
 Book::Book() = default;
 
 Book::Book(double _price, int _quantity, const string &ISBN_, const string &_name, const string &_author, const string &_keyword) : price(_price), quantity(_quantity) {
@@ -64,54 +45,4 @@ Entry::Entry(const string &ISBN_, const string &_userID, int _operatorAuthority,
     time_t now = time(nullptr);
     string timeStr = ctime(&now);
     strcpy(dealTime, timeStr.c_str());
-}
-
-void initialize() {
-    fstream fs;
-    fs.open(LOG_FILENAME, ios::in);
-    if (!fs) {
-        fs.clear();
-        fs.close();
-        
-        //create file
-        fs.open(LOG_FILENAME, ios::out);
-        fs.close();
-        fs.open(COMMAND_FILENAME, ios::out);
-        fs.close();
-        fs.open(STAFF_DATA_FILENAME, ios::out);
-        fs.close();
-        fs.open(STAFF_LOG_FILENAME, ios::out);
-        fs.close();
-        fs.open(BILL_FILENAME, ios::out);
-        fs.close();
-        fs.open(BASIC_DATA_FILENAME, ios::out);
-        fs.close();
-        fs.open(USER_DATA_FILENAME, ios::out);
-        fs.close();
-        fs.open(BOOK_DATA_FILENAME, ios::out);
-        fs.close();
-        
-        //create root account
-        UserAccount root(7, "root", "root", "sjtu");
-        int offset = writeData<UserAccount>(USER, root);
-        Element temp(offset, "root");
-        indexUserID.addElement(temp);
-        
-        //set basic data
-        bookNumber = 0;
-        totalTransaction = 0;
-        totalExpense = 0;
-        totalIncome = 0;
-        writeBasicData<int>(BOOKNUMBER, bookNumber);
-        writeBasicData<int>(TRANSACTION, totalTransaction);
-        writeBasicData<double>(EXPENSE, totalExpense);
-        writeBasicData<double>(INCOME, totalIncome);
-    }
-    else {
-        //read basic data
-        bookNumber = readBasicData<int>(BOOKNUMBER);
-        totalTransaction = readBasicData<int>(TRANSACTION);
-        totalExpense = readBasicData<double>(EXPENSE);
-        totalIncome = readBasicData<double>(INCOME);
-    }
 }
