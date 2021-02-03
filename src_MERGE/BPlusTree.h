@@ -240,7 +240,7 @@ namespace RainyMemory {
                             return true;
                         }
                     }
-                    else {
+                    else if (leftBrother >= 0 && rightBrother >= 0) {
                         //try borrow/merge left/right
                         leafNode leftNode = tree->leafPool->read(leftBrother);
                         if (leftNode.dataNumber > MIN_RECORD_NUM) {
@@ -259,6 +259,7 @@ namespace RainyMemory {
                             }
                         }
                     }
+                    else return false;
                 }
                 else return false;
             }
@@ -599,7 +600,7 @@ namespace RainyMemory {
                             return true;
                         }
                     }
-                    else {
+                    else if (leftBrother >= 0 && rightBrother >= 0) {
                         internalNode leftNode = tree->internalPool->read(leftBrother);
                         if (leftNode.keyNumber > MIN_KEY_NUM) {
                             borrowLeft(tree, leftNode, fatherNode, index);
@@ -617,6 +618,7 @@ namespace RainyMemory {
                             }
                         }
                     }
+                    else return false;
                 }
                 else return false;
             }
@@ -693,27 +695,21 @@ namespace RainyMemory {
             }
         }
         
-        //FIRST:
-        //        first:   fatherNode offset
-        //        second:  nowNode offset (to find index in fatherNode)
-        //SECOND:
-        //        first:   son node need resize
-        //        second:  delete successfully
-        pair<bool, bool> recursionErase(int now, const key &o1) {
+        //first:   son node need resize
+        //second:  delete successfully
+        pair<bool, bool> recursionErase(int now, const key &o) {
             internalNode nowNode = internalPool->read(now);
-            bool deleted = false;
             if (nowNode.childNodeIsLeaf) {
-                int index = upper_bound(nowNode.nodeKey, nowNode.nodeKey + nowNode.keyNumber, o1) - nowNode.nodeKey;
+                int index = upper_bound(nowNode.nodeKey, nowNode.nodeKey + nowNode.keyNumber, o) - nowNode.nodeKey;
                 leafNode targetNode = leafPool->read(nowNode.childNode[index]);
-                deleted = targetNode.deleteElement(this, o1);
                 pair<bool, bool> temp;
+                temp.second = targetNode.deleteElement(this, o);
                 temp.first = targetNode.resize(this, nowNode, index);
-                temp.second = deleted;
                 return temp;
             }
             else {
-                int index = upper_bound(nowNode.nodeKey, nowNode.nodeKey + nowNode.keyNumber, o1) - nowNode.nodeKey;
-                pair<bool, bool> temp = recursionErase(nowNode.childNode[index], o1);
+                int index = upper_bound(nowNode.nodeKey, nowNode.nodeKey + nowNode.keyNumber, o) - nowNode.nodeKey;
+                pair<bool, bool> temp = recursionErase(nowNode.childNode[index], o);
                 if (!temp.first || !temp.second)return temp;
                 else {
                     internalNode sonNode = internalPool->read(nowNode.childNode[index]);
@@ -791,22 +787,22 @@ namespace RainyMemory {
         }
         
         //return whether erase is successful
-        bool erase(const key &o1) {
+        bool erase(const key &o) {
             if (info.size == 0 || info.root == -1)return false;
             else {
                 internalNode rootNode = internalPool->read(info.root);
                 bool deleted;
                 if (rootNode.childNodeIsLeaf) {
-                    int index = upper_bound(rootNode.nodeKey, rootNode.nodeKey + rootNode.keyNumber, o1) - rootNode.nodeKey;
+                    int index = upper_bound(rootNode.nodeKey, rootNode.nodeKey + rootNode.keyNumber, o) - rootNode.nodeKey;
                     leafNode targetNode = leafPool->read(rootNode.childNode[index]);
-                    deleted = targetNode.deleteElement(this, o1);
+                    deleted = targetNode.deleteElement(this, o);
                     if (deleted) {
                         if (targetNode.resize(this, rootNode, index))rootNode.resizeRoot(this);
                     }
                 }
                 else {
-                    int index = upper_bound(rootNode.nodeKey, rootNode.nodeKey + rootNode.keyNumber, o1) - rootNode.nodeKey;
-                    pair<bool, bool> temp = recursionErase(rootNode.childNode[index], o1);
+                    int index = upper_bound(rootNode.nodeKey, rootNode.nodeKey + rootNode.keyNumber, o) - rootNode.nodeKey;
+                    pair<bool, bool> temp = recursionErase(rootNode.childNode[index], o);
                     if (!temp.second)return false;
                     else {
                         deleted = true;
