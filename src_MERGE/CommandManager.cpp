@@ -460,6 +460,12 @@ void runCommand(const string &cmd) {
                         Book tempBook = readData<Book>(BOOK, i * sizeof(Book));
                         allBook.push_back(tempBook);
                     }
+//                    vector<int> possibleOffset;
+//                    indexISBN.traverse(possibleOffset);
+//                    for (int i:possibleOffset) {
+//                        Book tempBook = readData<Book>(BOOK, i);
+//                        allBook.push_back(tempBook);
+//                    }
                     sort(allBook.begin(), allBook.end());
                     for (Book i:allBook)i.show();
                 }

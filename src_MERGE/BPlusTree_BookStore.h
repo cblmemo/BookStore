@@ -18,20 +18,26 @@ public:
     
     void findElement(const string &key, vector<int> &result) {
         BPlusTreeString temp(key);
-        int res=bpt.find(temp);
-        if(res>=0)result.push_back(res);
+        int res = bpt.find(temp);
+        if (res >= 0)result.push_back(res);
     }
     
     void addElement(const Element &o) {
-        string tt=o.key;
+        string tt = o.key;
         BPlusTreeString temp(tt);
         bpt.insert(temp, o.offset);
     }
     
     void deleteElement(const Element &o) {
-        string tt=o.key;
+        string tt = o.key;
         BPlusTreeString temp(tt);
         bpt.erase(temp);
+    }
+    
+    void traverse(vector<int> &result){
+        for(auto i:bpt){
+            result.push_back(i);
+        }
     }
 };
 

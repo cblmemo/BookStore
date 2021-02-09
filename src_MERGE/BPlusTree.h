@@ -23,7 +23,8 @@ using std::lower_bound;
 
 using RainyMemory::MemoryPool;
 
-#define debug
+//#define debug
+#define bptIterator
 
 namespace RainyMemory {
     template<class key, class data, int M = 200, int L = 200, data failedSignal = -1>
@@ -754,41 +755,106 @@ namespace RainyMemory {
             }
         }
 
-#ifdef debug
-    private:
-        void show(int offset, bool isLeaf) const {
-            cout << "[pos] " << offset << endl;
-            if (isLeaf) {
-                leafNode tempNode = leafPool->read(offset);
-                tempNode.show();
-            }
-            else {
-                internalNode tempNode = internalPool->read(offset);
-                tempNode.show();
-                cout << endl;
-                for (int i = 0; i <= tempNode.keyNumber; i++) {
-                    if (tempNode.childNodeIsLeaf)show(tempNode.childNode[i], true);
-                    else show(tempNode.childNode[i], false);
-                }
-            }
-        };
+#ifdef bptIterator
     
     public:
-        void show() const {
-            cout << "[show]--------------------------------------------------------------------------------" << endl;
-            show(info.root, false);
-            cout << "[show]--------------------------------------------------------------------------------" << endl;
+        class iterator {
+        private:
+            friend class BPlusTree;
+        
+        private:
+            const BPlusTree<key, data, M, L, failedSignal> *tree;
+            leafNode nowNode;
+            int index;
+        
+        public:
+            iterator(const iterator &o) : tree(o.tree), nowNode(o.nowNode), index(o.index) {}
+            
+            iterator(const BPlusTree<key, data, M, L, failedSignal> *_tree, int nowNodeOffset, int _index) : tree(_tree), index(_index) {
+                nowNode = tree->leafPool->read(nowNodeOffset);
+            }
+            
+            iterator(const BPlusTree<key, data, M, L, failedSignal> *_tree, const leafNode &_nowNode, int _index) : tree(_tree), nowNode(_nowNode), index(_index) {}
+            
+            data &operator*() {
+                return nowNode.leafData[index];
+            }
+            
+            bool operator!=(const iterator &o) const {
+                if (nowNode.offset != o.nowNode.offset)return true;
+                return index != o.index;
+            }
+            
+            iterator &operator++() {
+                if (index == nowNode.dataNumber - 1) {
+                    index = 0;
+                    nowNode = tree->leafPool->read(nowNode.rightBrother);
+                }
+                else index++;
+                return *this;
+            }
+            
+            iterator operator++(int) {
+                iterator temp(*this);
+                if (index == nowNode.dataNumber - 1) {
+                    index = 0;
+                    nowNode = tree->leafPool->read(nowNode.rightBrother);
+                }
+                else index++;
+                return temp;
+            }
+        };
+        
+        iterator begin() const {
+            return iterator(this, info.head, 0);
         }
         
-        void showLeaves() const {
+        iterator end() const {
             int cur = info.head;
-            while (cur >= 0) {
-                leafNode nowNode = leafPool->read(cur);
-                nowNode.show();
-                cur = nowNode.rightBrother;
+            leafNode tempNode = leafPool->read(cur);
+            while (tempNode.rightBrother >= 0) {
+                cur = tempNode.rightBrother;
+                tempNode = leafPool->read(cur);
             }
+            return iterator(this, tempNode, tempNode.dataNumber);
         }
 
+#endif
+
+#ifdef debug
+        private:
+            void show(int offset, bool isLeaf) const {
+                cout << "[pos] " << offset << endl;
+                if (isLeaf) {
+                    leafNode tempNode = leafPool->read(offset);
+                    tempNode.show();
+                }
+                else {
+                    internalNode tempNode = internalPool->read(offset);
+                    tempNode.show();
+                    cout << endl;
+                    for (int i = 0; i <= tempNode.keyNumber; i++) {
+                        if (tempNode.childNodeIsLeaf)show(tempNode.childNode[i], true);
+                        else show(tempNode.childNode[i], false);
+                    }
+                }
+            };
+        
+        public:
+            void show() const {
+                cout << "[show]--------------------------------------------------------------------------------" << endl;
+                show(info.root, false);
+                cout << "[show]--------------------------------------------------------------------------------" << endl;
+            }
+            
+            void showLeaves() const {
+                int cur = info.head;
+                while (cur >= 0) {
+                    leafNode nowNode = leafPool->read(cur);
+                    nowNode.show();
+                    cur = nowNode.rightBrother;
+                }
+            }
 #endif
     };
 }
