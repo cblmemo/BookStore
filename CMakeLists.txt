@@ -3,10 +3,9 @@ project(code)
 
 set(CMAKE_CXX_STANDARD 14)
 
-add_executable(code src_MERGE/main.cpp src_MERGE/BPlusTree.h
-        src_MERGE/BPlusTreeString.h src_MERGE/MemoryPool.h
-        src_MERGE/BookStoreHeader.h src_MERGE/BookStore.cpp
-        src_MERGE/CommandManager.cpp src_MERGE/MyException.h
-        src_MERGE/Administrator.cpp src_MERGE/Administrator.h
-        src_MERGE/BPlusTree_BookStore.h
-        src_MERGE/UnrolledLinkedList.h src_MERGE/UnrolledLinkedList.cpp)
+add_executable(code src_BPT/main.cpp src_BPT/BPlusTree.h
+        src_BPT/BPlusTreeString.h src_BPT/MemoryPool.h
+        src_BPT/BookStoreHeader.h src_BPT/BookStore.cpp
+        src_BPT/CommandManager.cpp src_BPT/MyException.h
+        src_BPT/Administrator.cpp src_BPT/Administrator.h
+        src_BPT/BPlusTree_BookStore.h)

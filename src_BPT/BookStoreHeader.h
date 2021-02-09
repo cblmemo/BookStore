@@ -13,6 +13,8 @@
 #include <algorithm>
 #include <ctime>
 
+//#define log
+
 using std::stringstream;
 using std::cin;
 using std::sort;
@@ -125,15 +127,9 @@ public:
 
 
 
-//bookStore:-----------\/
+//commandFunction:-----\/
 
 void initialize();
-
-//bookStore:-----------/\
-
-
-
-//commandFunction:-----\/
 
 void splitKeyWord(const string &keyWordStr, vector<string> &keyWord);
 
@@ -155,6 +151,8 @@ void entryRecord(const Entry &o);
 
 void calculateEntry(int start, int end, double &income, double &expense);
 
+#ifdef log
+
 void staffRecord(const string &userID);
 
 void getStaff(vector<string> &staff);
@@ -163,11 +161,16 @@ void logRecord(string logContent, const string &cmd);
 
 void staffLogRecord(const string &type, const string &arguments);
 
+#endif
+
 //commandFunction:-----/\
 
 
 
 //basicCommand:--------\/
+
+#ifdef log
+
 void reportFinance();
 
 void reportEmployee();
@@ -175,6 +178,8 @@ void reportEmployee();
 void reportMyself(const string &userID, bool flag);
 
 void showLog();
+
+#endif
 
 //basicCommand:--------/\
 
