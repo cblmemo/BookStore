@@ -26,7 +26,7 @@ public:
 
 class BPlusTree {
 private:
-    RainyMemory::BPlusTree<BPlusTreeString, int> bpt;
+    RainyMemory::BPlusTree<BPlusTreeString, int, 30, 30> bpt;
 
 public:
     BPlusTree(const string &_filename) : bpt(_filename) {}

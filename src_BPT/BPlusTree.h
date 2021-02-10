@@ -21,7 +21,7 @@ using std::lower_bound;
 
 using RainyMemory::MemoryPool;
 
-#define debug
+//#define debug
 
 namespace RainyMemory {
     template<class key, class data, int M = 200, int L = 200>
