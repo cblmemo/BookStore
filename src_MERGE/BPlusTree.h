@@ -30,6 +30,21 @@ namespace RainyMemory {
     template<class key, class data, int M = 200, int L = 200, data failedSignal = -1>
     class BPlusTree {
     private:
+        struct splitNodeReturn {
+            int offset;
+            key nodeKey;
+        };
+    
+        struct insertReturn{
+            bool childNodeNumberIncreased;
+            splitNodeReturn node;
+        };
+    
+        struct eraseReturn{
+            bool sonNodeNeedResize;
+            bool eraseSucceed;
+        };
+    
         class leafNode;
         
         class internalNode;
@@ -94,7 +109,7 @@ namespace RainyMemory {
                 }
             }
             
-            pair<int, key> splitNode(BPlusTree *tree) {
+            splitNodeReturn splitNode(BPlusTree *tree) {
                 leafNode tempNode;
                 tempNode.leftBrother = offset;
                 tempNode.rightBrother = rightBrother;
@@ -113,9 +128,9 @@ namespace RainyMemory {
                 dataNumber = MIN_RECORD_NUM;
                 tree->leafPool->write(tempNode);
                 tree->leafPool->update(*this, offset);
-                pair<int, key> temp;
-                temp.first = tempNode.offset;
-                temp.second = tempNode.leafKey[0];
+                splitNodeReturn temp;
+                temp.offset = tempNode.offset;
+                temp.nodeKey = tempNode.leafKey[0];
                 return temp;
             }
             
@@ -292,13 +307,13 @@ namespace RainyMemory {
             int childNode[MAX_CHILD_NUM] = {0};
         
         public:
-            void addElement(BPlusTree *tree, const pair<int, key> &o, int pos) {
+            void addElement(BPlusTree *tree, const splitNodeReturn &o, int pos) {
                 for (int i = keyNumber - 1; i >= pos; i--) {
                     childNode[i + 2] = childNode[i + 1];
                     nodeKey[i + 1] = nodeKey[i];
                 }
-                childNode[pos + 1] = o.first;
-                nodeKey[pos] = o.second;
+                childNode[pos + 1] = o.offset;
+                nodeKey[pos] = o.nodeKey;
                 keyNumber++;
                 tree->internalPool->update(*this, offset);
             }
@@ -328,7 +343,7 @@ namespace RainyMemory {
                 tree->info.root = newRoot.offset;
             }
             
-            pair<int, key> splitNode(BPlusTree *tree) {
+            splitNodeReturn splitNode(BPlusTree *tree) {
                 internalNode tempNode;
                 tempNode.leftBrother = offset;
                 tempNode.rightBrother = rightBrother;
@@ -357,9 +372,9 @@ namespace RainyMemory {
                 keyNumber = MIN_KEY_NUM;
                 tree->internalPool->write(tempNode);
                 tree->internalPool->update(*this, offset);
-                pair<int, key> temp;
-                temp.first = tempNode.offset;
-                temp.second = nodeKey[MIN_KEY_NUM];
+                splitNodeReturn temp;
+                temp.offset = tempNode.offset;
+                temp.nodeKey = nodeKey[MIN_KEY_NUM];
                 return temp;
             }
             
@@ -570,55 +585,53 @@ namespace RainyMemory {
         }
         
         //first represent child node number ++
-        pair<bool, pair<int, key>> recursionInsert(int now, const key &o1, const data &o2) {
+        insertReturn recursionInsert(int now, const key &o1, const data &o2) {
             internalNode nowNode = internalPool->read(now);
             if (nowNode.childNodeIsLeaf) {
                 int index = upper_bound(nowNode.nodeKey, nowNode.nodeKey + nowNode.keyNumber, o1) - nowNode.nodeKey;
                 leafNode targetNode = leafPool->read(nowNode.childNode[index]);
                 targetNode.addElement(this, o1, o2);
-                pair<bool, pair<int, key>> temp;
+                insertReturn temp;
                 if (targetNode.dataNumber == MAX_RECORD_NUM) {
                     nowNode.addElement(this, targetNode.splitNode(this), index);
                     if (nowNode.keyNumber == MAX_KEY_NUM) {
-                        temp.first = true;
-                        temp.second = nowNode.splitNode(this);
+                        temp.childNodeNumberIncreased = true;
+                        temp.node = nowNode.splitNode(this);
                     }
-                    else temp.first = false;
+                    else temp.childNodeNumberIncreased = false;
                 }
-                else temp.first = false;
+                else temp.childNodeNumberIncreased = false;
                 return temp;
             }
             else {
                 int index = upper_bound(nowNode.nodeKey, nowNode.nodeKey + nowNode.keyNumber, o1) - nowNode.nodeKey;
-                pair<bool, pair<int, key>> temp = recursionInsert(nowNode.childNode[index], o1, o2);
-                if (temp.first) {
-                    nowNode.addElement(this, temp.second, index);
-                    if (nowNode.keyNumber == MAX_KEY_NUM)temp.second = nowNode.splitNode(this);
-                    else temp.first = false;
+                insertReturn temp = recursionInsert(nowNode.childNode[index], o1, o2);
+                if (temp.childNodeNumberIncreased) {
+                    nowNode.addElement(this, temp.node, index);
+                    if (nowNode.keyNumber == MAX_KEY_NUM)temp.node = nowNode.splitNode(this);
+                    else temp.childNodeNumberIncreased = false;
                 }
                 return temp;
             }
         }
         
-        //first:   son node need resize
-        //second:  delete successfully
-        pair<bool, bool> recursionErase(int now, const key &o) {
+        eraseReturn recursionErase(int now, const key &o) {
             internalNode nowNode = internalPool->read(now);
             if (nowNode.childNodeIsLeaf) {
                 int index = upper_bound(nowNode.nodeKey, nowNode.nodeKey + nowNode.keyNumber, o) - nowNode.nodeKey;
                 leafNode targetNode = leafPool->read(nowNode.childNode[index]);
-                pair<bool, bool> temp;
-                temp.second = targetNode.deleteElement(this, o);
-                temp.first = targetNode.resize(this, nowNode, index);
+                eraseReturn temp;
+                temp.eraseSucceed = targetNode.deleteElement(this, o);
+                temp.sonNodeNeedResize = targetNode.resize(this, nowNode, index);
                 return temp;
             }
             else {
                 int index = upper_bound(nowNode.nodeKey, nowNode.nodeKey + nowNode.keyNumber, o) - nowNode.nodeKey;
-                pair<bool, bool> temp = recursionErase(nowNode.childNode[index], o);
-                if (!temp.first || !temp.second)return temp;
+                eraseReturn temp = recursionErase(nowNode.childNode[index], o);
+                if (!temp.sonNodeNeedResize || !temp.eraseSucceed)return temp;
                 else {
                     internalNode sonNode = internalPool->read(nowNode.childNode[index]);
-                    temp.first = sonNode.resize(this, nowNode, index);
+                    temp.sonNodeNeedResize = sonNode.resize(this, nowNode, index);
                     return temp;
                 }
             }
@@ -681,9 +694,9 @@ namespace RainyMemory {
                 }
                 else {
                     int index = upper_bound(rootNode.nodeKey, rootNode.nodeKey + rootNode.keyNumber, o1) - rootNode.nodeKey;
-                    pair<bool, pair<int, key>> temp = recursionInsert(rootNode.childNode[index], o1, o2);
-                    if (temp.first) {
-                        rootNode.addElement(this, temp.second, index);
+                    insertReturn temp = recursionInsert(rootNode.childNode[index], o1, o2);
+                    if (temp.childNodeNumberIncreased) {
+                        rootNode.addElement(this, temp.node, index);
                         if (rootNode.keyNumber == MAX_KEY_NUM)rootNode.splitRoot(this);
                     }
                 }
@@ -707,11 +720,11 @@ namespace RainyMemory {
                 }
                 else {
                     int index = upper_bound(rootNode.nodeKey, rootNode.nodeKey + rootNode.keyNumber, o) - rootNode.nodeKey;
-                    pair<bool, bool> temp = recursionErase(rootNode.childNode[index], o);
-                    if (!temp.second)return false;
+                    eraseReturn temp = recursionErase(rootNode.childNode[index], o);
+                    if (!temp.eraseSucceed)return false;
                     else {
                         deleted = true;
-                        if (temp.first) {
+                        if (temp.sonNodeNeedResize) {
                             internalNode sonNode = internalPool->read(rootNode.childNode[index]);
                             if (sonNode.resize(this, rootNode, index))rootNode.resizeRoot(this);
                         }
