@@ -5,7 +5,7 @@
 #ifndef BOOKSTORE_BOOKSTOREHEADER_H
 #define BOOKSTORE_BOOKSTOREHEADER_H
 
-#include "BPlusTree_BookStore.h"
+#include "HashBPlusTree.h"
 #include "MyException.h"
 
 #include <iomanip>
