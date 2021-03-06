@@ -29,21 +29,24 @@ public:
     }
     
     string nextToken() {
-        int next = pos;
-        while (Buffer[next] != Delim && next < Buffer.length())next++;
-        string ret;
-        //for (int i = pos; i < next; i++)ret += Buffer[i];
-        ret = Buffer.substr(pos, next - pos);
-        pos = next + 1;
-        if (pos < Buffer.length())while (Buffer[pos] == Delim)pos++;
-        return ret;
+        if (hasMoreTokens()) {
+            int next = pos;
+            while (Buffer[next] != Delim && next < Buffer.length())next++;
+            string ret;
+            //for (int i = pos; i < next; i++)ret += Buffer[i];
+            ret = Buffer.substr(pos, next - pos);
+            pos = next + 1;
+            if (pos < Buffer.length())while (Buffer[pos] == Delim)pos++;
+            return ret;
+        }
+        else return "";
     }
     
     bool empty() const {
         return pos >= Buffer.length();
     }
     
-    bool hasMoreToken() const {
+    bool hasMoreTokens() const {
         return pos < Buffer.length();
     }
     

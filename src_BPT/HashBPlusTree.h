@@ -29,18 +29,20 @@ public:
 class BPlusTree {
 public:
     class hashType {
-        const int p = 1000000007;
+        enum prime {
+            PRIME = 1000000007
+        };
         
-        int getHash1(const string &o) {
+        static int getHash1(const string &o) {
             int h = o.length();
             for (char i : o)h = (h << 4) ^ (h >> 28) ^ i;
-            return h % p;
+            return h % PRIME;
         }
         
-        int getHash2(const string &o) {
+        static int getHash2(const string &o) {
             int h = o.length();
             for (char i : o)h = (h << 7) ^ (h >> 25) ^ i;
-            return h % p;
+            return h % PRIME;
         }
     
     public:
@@ -51,10 +53,14 @@ public:
         
         hashType() = default;
         
-        hashType &operator=(const hashType &o) {
-            hash1 = o.hash1;
-            hash2 = o.hash2;
-            return *this;
+        hashType &operator=(const hashType &o) = default;
+        
+        bool operator==(const hashType &o) const {
+            return hash1 == o.hash1 && hash2 == o.hash2;
+        }
+        
+        bool operator!=(const hashType &o) const {
+            return !(*this == o);
         }
         
         bool operator<(const hashType &o) const {
@@ -63,13 +69,16 @@ public:
             else return hash2 < o.hash2;
         }
         
-        bool operator==(const hashType &o) const {
-            return hash1 == o.hash1 && hash2 == o.hash2;
+        bool operator>(const hashType &o) const {
+            return !(*this == o) && !(*this < o);
         }
         
-        bool operator>(const hashType &o) const {
-            if (*this == o)return false;
-            return !(*this < o);
+        bool operator<=(const hashType &o) const {
+            return *this == o || *this < o;
+        }
+        
+        bool operator>=(const hashType &o) const {
+            return *this == o || *this > o;
         }
     };
 
