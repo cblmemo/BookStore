@@ -82,7 +82,7 @@ void initialize() {
 }
 
 void splitKeyWord(const string &keyWordStr, vector<string> &keyWord) {
-    stringstream ss(keyWordStr);
+    std::stringstream ss(keyWordStr);
     string temp;
     while (getline(ss, temp, '|'))keyWord.push_back(temp);
 }
@@ -143,7 +143,7 @@ void argumentCheck(const string &argument, const string &argumentNameStr, comman
 }
 
 void runCommand(const string &cmd) {
-    stringstream ss(cmd);
+    TokenScanner ss(cmd);
     string cmdType;
 #ifdef log
     string logContent;
@@ -446,7 +446,7 @@ void runCommand(const string &cmd) {
                     else throw invalidCommand(MODIFY, WRONGFORMAT, "price");
                 }
             }
-            stringstream ss_(arguments[4]);
+            std::stringstream ss_(arguments[4]);
             double price;
             ss_ >> price;
             nowSelectedBook.price = price;
@@ -481,7 +481,8 @@ void runCommand(const string &cmd) {
                 else throw invalidCommand(IMPORT, WRONGFORMAT, "cost_price");
             }
         }
-        stringstream ss1(_quantity), ss2(_cost_price);
+        TokenScanner ss1(_quantity);
+        std::stringstream ss2(_cost_price);
         int quantity;
         double cost_price;
         ss1 >> quantity;
@@ -519,7 +520,7 @@ void runCommand(const string &cmd) {
 #endif
             }
             else {
-                stringstream ss0(_times);
+                TokenScanner ss0(_times);
                 int times;
                 ss0 >> times;
                 if (times > totalTransaction)throw invalidCommand(SHOW, WRONGFORMAT, "times");
@@ -630,7 +631,7 @@ void runCommand(const string &cmd) {
         argumentCheck(ISBN, "ISBN", BUY, 20);
         authorityCheck(1, BUY);
         int quantity;
-        stringstream ss0(_quantity);
+        TokenScanner ss0(_quantity);
         ss0 >> quantity;
         if (quantity >= 1000000)throw invalidCommand(BUY, WRONGFORMAT, "quantity");
         double singlePrice = buy(ISBN, quantity);
@@ -648,37 +649,37 @@ void runCommand(const string &cmd) {
 #endif
     }
 #ifdef log
-    else if (cmdType == "report") {
-        string reportType;
-        ss >> reportType;
-        if (reportType == "finance") {
-            ss >> remains;
-            if (!remains.empty())throw invalidCommand(REPORTFINANCE, REMAINS);
-            authorityCheck(7, REPORTFINANCE);
-            reportFinance();
+        else if (cmdType == "report") {
+            string reportType;
+            ss >> reportType;
+            if (reportType == "finance") {
+                ss >> remains;
+                if (!remains.empty())throw invalidCommand(REPORTFINANCE, REMAINS);
+                authorityCheck(7, REPORTFINANCE);
+                reportFinance();
+            }
+            else if (reportType == "employee") {
+                ss >> remains;
+                if (!remains.empty())throw invalidCommand(REPORTEMPLOYEE, REMAINS);
+                authorityCheck(7, REPORTEMPLOYEE);
+                reportEmployee();
+            }
+            else if (reportType == "myself") {
+                ss >> remains;
+                if (!remains.empty())throw invalidCommand(REPORTMYSELF, REMAINS);
+                if (nowAuthority() < 3)throw invalidCommand(REPORTMYSELF, INADEQUATEAUTHORITY);
+                if (nowAuthority() == 7)throw invalidCommand(REPORTMYSELF, BOSSREPORTITSELF);
+                string userID = accountStack[accountStack.size() - 1].userID;
+                reportMyself(userID, true);
+            }
+            else throw invalidCommand(UNKNOWN, UNKNOWNERROR);
         }
-        else if (reportType == "employee") {
+        else if (cmdType == "log") {
             ss >> remains;
-            if (!remains.empty())throw invalidCommand(REPORTEMPLOYEE, REMAINS);
-            authorityCheck(7, REPORTEMPLOYEE);
-            reportEmployee();
+            if (!remains.empty())throw invalidCommand(LOG, REMAINS);
+            authorityCheck(7, LOG);
+            showLog();
         }
-        else if (reportType == "myself") {
-            ss >> remains;
-            if (!remains.empty())throw invalidCommand(REPORTMYSELF, REMAINS);
-            if (nowAuthority() < 3)throw invalidCommand(REPORTMYSELF, INADEQUATEAUTHORITY);
-            if (nowAuthority() == 7)throw invalidCommand(REPORTMYSELF, BOSSREPORTITSELF);
-            string userID = accountStack[accountStack.size() - 1].userID;
-            reportMyself(userID, true);
-        }
-        else throw invalidCommand(UNKNOWN, UNKNOWNERROR);
-    }
-    else if (cmdType == "log") {
-        ss >> remains;
-        if (!remains.empty())throw invalidCommand(LOG, REMAINS);
-        authorityCheck(7, LOG);
-        showLog();
-    }
 #endif
 #ifdef customCommand
         else if (cmdType == "cmd") {
@@ -903,7 +904,7 @@ void reportMyself(const string &userID, bool flag) {
     fstream fs;
     fs.open(STAFF_LOG_FILENAME, ios::in);
     while (getline(fs, staffCmd)) {
-        stringstream ss(staffCmd);
+        TokenScanner ss(staffCmd);
         string nowUserID;
         ss >> nowUserID;
         if (nowUserID != userID)continue;

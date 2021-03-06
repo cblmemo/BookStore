@@ -7,15 +7,15 @@
 
 #include "HashBPlusTree.h"
 #include "MyException.h"
+#include "TokenScanner.h"
 
 #include <iomanip>
-#include <sstream>
+
 #include <algorithm>
 #include <ctime>
 
 //#define log
 
-using std::stringstream;
 using std::cin;
 using std::sort;
 using std::find;
