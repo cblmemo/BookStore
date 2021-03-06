@@ -8,6 +8,7 @@
 //NOTE: class key need to overload operator= and operator< to support assignment and sort
 
 #include "MemoryPool.h"
+#include "algorithm.h"
 
 #include <iostream>
 #include <vector>
@@ -16,10 +17,9 @@
 using std::cerr;
 using std::cout;
 using std::endl;
-using std::pair;
 using std::vector;
-using std::upper_bound;
-using std::lower_bound;
+using RainyMemory::upper_bound;
+using RainyMemory::lower_bound;
 
 using RainyMemory::MemoryPool;
 
