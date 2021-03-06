@@ -83,7 +83,7 @@ public:
     };
 
 private:
-    RainyMemory::BPlusTree<hashType, int, 100, 100> bpt;
+    RainyMemory::BPlusTree<hashType, int, 300, 300> bpt;
 
 public:
     explicit BPlusTree(const string &_filename) : bpt(_filename) {}
