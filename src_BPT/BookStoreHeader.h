@@ -21,6 +21,7 @@ using std::sort;
 using std::find;
 using std::setiosflags;
 using std::setprecision;
+using RainyMemory::TokenScanner;
 
 //file name
 #define LOG_FILENAME "log.dat"

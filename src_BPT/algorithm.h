@@ -5,7 +5,7 @@
 #ifndef CODE_ALGORITHM_H
 #define CODE_ALGORITHM_H
 
-namespace RainyMemory{
+namespace RainyMemory {
     template<class ptr, class T>
     ptr lower_bound(ptr first, ptr last, const T &val) {
         ptr now;
@@ -36,6 +36,25 @@ namespace RainyMemory{
             else count = step;
         }
         return first;
+    }
+    
+    template<class ptr, class T>
+    ptr find(ptr first, ptr last, const T &val) {
+        int len = last - first;
+        for (int i = 0; i < len; i++, first++) {
+            if (!(val < *first) && !(*first < val))return first;
+        }
+        return last;
+    }
+    
+    template<class T>
+    const T &min(const T &o1, const T &o2) {
+        return o1 < o2 ? o1 : o2;
+    }
+    
+    template<class T>
+    const T &max(const T &o1, const T &o2) {
+        return !(o1 < o2) ? o1 : o2;
     }
     
 }
