@@ -10,6 +10,7 @@
 using std::string;
 
 namespace RainyMemory {
+    
     class TokenScanner {
     private:
         string Buffer;
@@ -79,6 +80,7 @@ namespace RainyMemory {
             return *this;
         }
     };
+    
 }
 
 #endif //CODE_TOKENSCANNER_H

@@ -7,7 +7,7 @@
 
 //NOTE: class key need to overload operator= and operator< to support assignment and sort
 
-#include "MemoryPool.h"
+#include "LRUCacheMemoryPool.h"
 #include "algorithm.h"
 
 #include <iostream>
@@ -19,7 +19,7 @@ using std::endl;
 using std::vector;
 using RainyMemory::upper_bound;
 using RainyMemory::lower_bound;
-using RainyMemory::MemoryPool;
+using RainyMemory::LRUCacheMemoryPool;
 
 //#define debug
 
@@ -64,8 +64,8 @@ namespace RainyMemory {
         };
     
     private:
-        MemoryPool<leafNode, basicInfo> *leafPool;
-        MemoryPool<internalNode, basicInfo> *internalPool;
+        LRUCacheMemoryPool<leafNode, basicInfo> *leafPool;
+        LRUCacheMemoryPool<internalNode, basicInfo> *internalPool;
         basicInfo info;
     
     private:
@@ -784,8 +784,8 @@ namespace RainyMemory {
     
     public:
         explicit BPlusTree(const string &name) {
-            leafPool = new MemoryPool<leafNode, basicInfo>("leaf_" + name + ".dat");
-            internalPool = new MemoryPool<internalNode, basicInfo>("internal_" + name + ".dat");
+            leafPool = new LRUCacheMemoryPool<leafNode, basicInfo>("leaf_" + name + ".dat");
+            internalPool = new LRUCacheMemoryPool<internalNode, basicInfo>("internal_" + name + ".dat");
             info = leafPool->readExtraMessage();
         }
         
@@ -802,12 +802,6 @@ namespace RainyMemory {
         
         bool empty() const {
             return info.size == 0;
-        }
-        
-        void clear() {
-            leafPool->clear();
-            internalPool->clear();
-            info = leafPool->readExtraMessage();
         }
         
         void insert(const key &o1, const data &o2) {
