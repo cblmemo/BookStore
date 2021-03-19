@@ -55,21 +55,19 @@ namespace RainyMemory {
                 }
             }
             
-            Node *find(int k) {
-                Node *now = head->next;
-                while (now != tail) {
-                    if (now->key == k)return now;
-                    now = now->next;
-                }
-                return nullptr;
-            }
-            
             void push_front(Node *n) {
                 head->next->pre = n;
                 n->next = head->next;
                 head->next = n;
                 n->pre = head;
                 listSize++;
+            }
+            
+            void to_front(Node *n) {
+                n->pre->next = n->next;
+                n->next->pre = n->pre;
+                listSize--;
+                push_front(n);
             }
             
             Node *pop_back() {
@@ -97,7 +95,7 @@ namespace RainyMemory {
         const string filename;
         fstream fin, fout;
         
-        HashMap<int, typename DoublyLinkedList::Node> hashmap;
+        HashMap<int, typename DoublyLinkedList::Node *> hashmap;
         DoublyLinkedList cache;
         
         bool existInCache(int key) {
@@ -112,15 +110,19 @@ namespace RainyMemory {
         }
         
         void eraseInCache(int key) {
-            cache.erase(&hashmap[key]);
+            cache.erase(hashmap[key]);
             hashmap.erase(key);
         }
         
         void putInCache(int key, const T &o) {
-            typename DoublyLinkedList::Node newNode(key, o);
-            if (existInCache(key))cache.erase(&hashmap[key]);
-            else if (cache.full())discardLRU();
-            cache.push_front(&newNode);
+            if (existInCache(key)) {
+                cache.to_front(hashmap[key]);
+                *hashmap[key]->value = o;
+                return;
+            }
+            auto newNode = new typename DoublyLinkedList::Node(key, o);
+            if (cache.full())discardLRU();
+            cache.push_front(newNode);
             hashmap[key] = newNode;
         }
         
@@ -205,7 +207,7 @@ namespace RainyMemory {
         }
         
         T read(int offset) {
-            T temp = existInCache(offset) ? *hashmap[offset].value : readInFile(offset);
+            T temp = existInCache(offset) ? *hashmap[offset]->value : readInFile(offset);
             putInCache(offset, temp);
             return temp;
         }
@@ -217,9 +219,8 @@ namespace RainyMemory {
         }
         
         void update(const T &o, int offset) {
-            bool flag = existInCache(offset);
+            hashmap[offset]->dirtyBit = true;
             putInCache(offset, o);
-            hashmap[offset].dirtyBit = flag;
         }
         
         void erase(int offset) {

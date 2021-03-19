@@ -76,10 +76,6 @@ namespace RainyMemory {
                 listSize--;
             }
             
-            int size() const {
-                return listSize;
-            }
-            
             bool empty() const {
                 return listSize == 0;
             }
@@ -110,22 +106,15 @@ namespace RainyMemory {
         
         bool containsKey(const Key &k) const {
             int index = hash(k) % capacity;
-            return buckets[index].empty() || buckets[index].find(k) == nullptr;
+            return !(buckets[index].empty() || buckets[index].find(k) == nullptr);
         }
         
         Value &operator[](const Key &k) {
             int index = hash(k) % capacity;
-            if (buckets[index].empty()) {
+            if(containsKey(k))return *buckets[index].find(k)->value;
+            else {
                 buckets[index].insert(k, Value());
                 return *buckets[index].head->value;
-            }
-            else {
-                typename LinkedList::Node *target = buckets[index].find(k);
-                if (target != nullptr) return *target->value;
-                else {
-                    buckets[index].insert(k, Value());
-                    return *buckets[index].head->value;
-                }
             }
         }
         
