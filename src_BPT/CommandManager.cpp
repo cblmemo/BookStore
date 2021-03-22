@@ -26,8 +26,8 @@ BPlusTree indexAuthor(INDEX_AUTHOR_FILENAME);
 BPlusTree indexName(INDEX_NAME_FILENAME);
 BPlusTree indexKeyWord(INDEX_KEYWORD_FILENAME);
 
-LRUCacheMemoryPool<Book, BasicData> BookManager(BOOK_DATA_FILENAME, 1000);
-LRUCacheMemoryPool<UserAccount, BasicData> UserManager(USER_DATA_FILENAME, 1000);
+LRUCacheMemoryPool<Book, BasicData> BookManager(BOOK_DATA_FILENAME, 100000);
+LRUCacheMemoryPool<UserAccount, BasicData> UserManager(USER_DATA_FILENAME, 100000);
 
 //commandFunction:-----\/
 
