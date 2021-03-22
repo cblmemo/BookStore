@@ -75,6 +75,14 @@ enum argumentType {
 
 //class:---------------\/
 
+class BasicData {
+public:
+    int bookNumber = 0;
+    int totalTransaction = 0;
+    double totalExpense = 0;
+    double totalIncome = 0;
+};
+
 class Book {
 public:
     double price = 0;
@@ -152,37 +160,7 @@ void entryRecord(const Entry &o);
 
 void calculateEntry(int start, int end, double &income, double &expense);
 
-#ifdef log
-
-void staffRecord(const string &userID);
-
-void getStaff(vector<string> &staff);
-
-void logRecord(string logContent, const string &cmd);
-
-void staffLogRecord(const string &type, const string &arguments);
-
-#endif
-
 //commandFunction:-----/\
-
-
-
-//basicCommand:--------\/
-
-#ifdef log
-
-void reportFinance();
-
-void reportEmployee();
-
-void reportMyself(const string &userID, bool flag);
-
-void showLog();
-
-#endif
-
-//basicCommand:--------/\
 
 
 
@@ -213,93 +191,6 @@ void deleteAccount(const string &userID);
 void changePassword(const string &userID, const string &newPassword, const string &oldPassword = "");
 
 //userCommand:---------/\
-
-
-
-//FileManager:---------\/
-
-// basicData.dat:
-// int bookNumber;
-// int totalTransaction;
-// double totalExpense;
-// double totalIncome;
-
-template<class T>
-void writeBasicData(basicDataType type, const T &o) {
-    fstream fs;
-    int pos;
-    switch (type) {
-        case BOOKNUMBER:
-            pos = 0;
-            break;
-        case TRANSACTION:
-            pos = sizeof(int);
-            break;
-        case EXPENSE:
-            pos = 2 * sizeof(int);
-            break;
-        case INCOME:
-            pos = 2 * sizeof(int) + sizeof(double);
-            break;
-    }
-    fs.open(BASIC_DATA_FILENAME, ios::in | ios::out | ios::binary);
-    fs.seekp(pos);
-    fs.write(reinterpret_cast<const char *>(&o), sizeof(T));
-    fs.close();
-}
-
-template<class T>
-T readBasicData(basicDataType type) {
-    T save;
-    fstream fs;
-    int pos;
-    switch (type) {
-        case BOOKNUMBER:
-            pos = 0;
-            break;
-        case TRANSACTION:
-            pos = sizeof(int);
-            break;
-        case EXPENSE:
-            pos = 2 * sizeof(int);
-            break;
-        case INCOME:
-            pos = 2 * sizeof(int) + sizeof(double);
-            break;
-    }
-    fs.open(BASIC_DATA_FILENAME, ios::in | ios::binary);
-    fs.seekg(pos);
-    fs.read(reinterpret_cast<char *>(&save), sizeof(T));
-    fs.close();
-    return save;
-}
-
-template<class T>
-int writeData(saveDataType type, const T &o, int offset = -1) {
-    fstream fs;
-    fs.open((type == USER ? USER_DATA_FILENAME : BOOK_DATA_FILENAME), ios::in | ios::out | ios::binary);
-    if (offset < 0) {
-        fs.seekp(0, ios::end);
-        offset = fs.tellp();
-    }
-    else fs.seekp(offset);
-    fs.write(reinterpret_cast<const char *>(&o), sizeof(T));
-    fs.close();
-    return offset;
-}
-
-template<class T>
-T readData(saveDataType type, int offset) {
-    fstream fs;
-    T temp;
-    fs.open((type == USER ? USER_DATA_FILENAME : BOOK_DATA_FILENAME), ios::in | ios::binary);
-    fs.seekg(offset);
-    fs.read(reinterpret_cast<char *>(&temp), sizeof(T));
-    fs.close();
-    return temp;
-}
-
-//FileManager:---------/\
 
 
 #endif //BOOKSTORE_BOOKSTOREHEADER_H

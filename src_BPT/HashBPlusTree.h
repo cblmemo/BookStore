@@ -102,6 +102,10 @@ public:
         hashType temp(o.key);
         bpt.erase(temp, o.offset);
     }
+    
+    void traversal(vector<int> &result){
+        bpt.traversal(result);
+    }
 };
 
 #endif //CODE_HASHBPLUSTREE_H

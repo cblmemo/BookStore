@@ -11,10 +11,7 @@
 const string argumentName[5] = {"ISBN", "name", "author", "keyword", "price"};
 
 //basicData: (in basicData.dat)
-int bookNumber;
-int totalTransaction;
-double totalExpense;
-double totalIncome;
+BasicData basicData;
 
 //temporaryData:
 vector<UserAccount> accountStack;
@@ -28,6 +25,9 @@ BPlusTree indexISBN(INDEX_ISBN_FILENAME);
 BPlusTree indexAuthor(INDEX_AUTHOR_FILENAME);
 BPlusTree indexName(INDEX_NAME_FILENAME);
 BPlusTree indexKeyWord(INDEX_KEYWORD_FILENAME);
+
+LRUCacheMemoryPool<Book, BasicData> BookManager(BOOK_DATA_FILENAME, 1000);
+LRUCacheMemoryPool<UserAccount, BasicData> UserManager(USER_DATA_FILENAME, 1000);
 
 //commandFunction:-----\/
 
@@ -58,26 +58,16 @@ void initialize() {
         
         //create root account
         UserAccount root(7, "root", "root", "sjtu");
-        int offset = writeData<UserAccount>(USER, root);
+        int offset = UserManager.write(root);
         Element temp(offset, "root");
         indexUserID.addElement(temp);
         
         //set basic data
-        bookNumber = 0;
-        totalTransaction = 0;
-        totalExpense = 0;
-        totalIncome = 0;
-        writeBasicData<int>(BOOKNUMBER, bookNumber);
-        writeBasicData<int>(TRANSACTION, totalTransaction);
-        writeBasicData<double>(EXPENSE, totalExpense);
-        writeBasicData<double>(INCOME, totalIncome);
+        BookManager.updateExtraMessage(basicData);
     }
     else {
         //read basic data
-        bookNumber = readBasicData<int>(BOOKNUMBER);
-        totalTransaction = readBasicData<int>(TRANSACTION);
-        totalExpense = readBasicData<double>(EXPENSE);
-        totalIncome = readBasicData<double>(INCOME);
+        basicData = BookManager.readExtraMessage();
     }
 }
 
@@ -145,9 +135,6 @@ void argumentCheck(const string &argument, const string &argumentNameStr, comman
 void runCommand(const string &cmd) {
     TokenScanner ss(cmd);
     string cmdType;
-#ifdef log
-    string logContent;
-#endif
     string remains;
     ss >> cmdType;
     if (cmdType.empty()) {
@@ -162,11 +149,6 @@ void runCommand(const string &cmd) {
         if (passwd.empty()) {
             if (user_id.size() > 30)throw invalidCommand(SU, WRONGFORMAT, "user-id");
             login(user_id);
-#ifdef log
-            logContent += "[log] high authority login successful.\n";
-            logContent += "user-id: " + user_id + "\n";
-            logRecord(logContent, cmd);
-#endif
         }
         else {
             ss >> remains;
@@ -174,28 +156,12 @@ void runCommand(const string &cmd) {
             if (user_id.size() > 30)throw invalidCommand(SU, WRONGFORMAT, "user-id");
             if (passwd.size() > 30)throw invalidCommand(SU, WRONGFORMAT, "passwd");
             login(user_id, passwd);
-#ifdef log
-            logContent += "[log] login successful.\n";
-            logContent += "user-id: " + user_id + "\n";
-            logContent += "passwd: " + passwd + "\n";
-            logRecord(logContent, cmd);
-#endif
         }
     }
     else if (cmdType == "logout") {
         ss >> remains;
         if (!remains.empty())throw invalidCommand(LOGOUT, REMAINS);
-        UserAccount logoutAccount = logout();
-#ifdef log
-        logContent += "[log] logout successful.\n";
-        logContent += "logout account: \n";
-        logContent += "user-id: " + (string) logoutAccount.userID + "\n";
-        logContent += "name: " + (string) logoutAccount.name + "\n";
-        logContent += "authority: ";
-        logContent += (char) (logoutAccount.authority + '0');
-        logContent += "\n";
-        logRecord(logContent, cmd);
-#endif
+        logout();
     }
     else if (cmdType == "useradd") {
         string user_id, passwd, _auth, name;
@@ -216,19 +182,6 @@ void runCommand(const string &cmd) {
         if (!possibleOffset.empty())throw invalidCommand(USERADD, USERALREADYEXIST, user_id);
         UserAccount _addAccount(auth, user_id, name, passwd);
         addAccount(_addAccount, user_id);
-#ifdef log
-        logContent += "[log] useradd successful.\n";
-        logContent += "add account: \n";
-        logContent += "user-id: " + (string) _addAccount.userID + "\n";
-        logContent += "passwd: " + (string) _addAccount.password + "\n";
-        logContent += "name: " + (string) _addAccount.name + "\n";
-        logContent += "authority: ";
-        logContent += (char) (_addAccount.authority + '0');
-        logContent += "\n";
-        logRecord(logContent, cmd);
-        if (nowAuthority() == 3)staffLogRecord(cmdType, user_id + " " + passwd + " " + _auth + " " + name);
-        if (auth == 3)staffRecord(user_id);
-#endif
     }
     else if (cmdType == "register") {
         string user_id, passwd, name;
@@ -243,17 +196,6 @@ void runCommand(const string &cmd) {
         if (!possibleOffset.empty())throw invalidCommand(USERADD, USERALREADYEXIST, user_id);
         UserAccount _registerAccount(1, user_id, name, passwd);
         registerAccount(_registerAccount, user_id);
-#ifdef log
-        logContent += "[log] register successful.\n";
-        logContent += "register account: \n";
-        logContent += "user-id: " + (string) _registerAccount.userID + "\n";
-        logContent += "passwd: " + (string) _registerAccount.password + "\n";
-        logContent += "name: " + (string) _registerAccount.name + "\n";
-        logContent += "authority: ";
-        logContent += (char) (_registerAccount.authority + '0');
-        logContent += "\n";
-        logRecord(logContent, cmd);
-#endif
     }
     else if (cmdType == "delete") {
         string user_id;
@@ -263,12 +205,6 @@ void runCommand(const string &cmd) {
         argumentCheck(user_id, "user-id", DELETE, 30);
         authorityCheck(7, DELETE);
         deleteAccount(user_id);
-#ifdef log
-        logContent += "[log] delete successful.\n";
-        logContent += "delete account: \n";
-        logContent += "user-id: " + user_id + "\n";
-        logRecord(logContent, cmd);
-#endif
     }
     else if (cmdType == "passwd") {
         authorityCheck(1, PASSWD);
@@ -282,12 +218,6 @@ void runCommand(const string &cmd) {
                 argumentCheck(user_id, "user-id", PASSWD, 30);
                 argumentCheck(newPasswd, "new-passwd", PASSWD, 30);
                 changePassword(user_id, newPasswd);
-#ifdef log
-                logContent += "[log] [root] change password successful.\n";
-                logContent += "user-id: " + user_id + "\n";
-                logContent += "new-passwd: " + newPasswd + "\n";
-                logRecord(logContent, cmd);
-#endif
             }
             else {
                 string temp = newPasswd;
@@ -297,13 +227,6 @@ void runCommand(const string &cmd) {
                 argumentCheck(newPasswd, "new-passwd", PASSWD, 30);
                 argumentCheck(oldPasswd, "old-passwd", PASSWD, 30);
                 changePassword(user_id, newPasswd, oldPasswd);
-#ifdef log
-                logContent += "[log] change password successful.\n";
-                logContent += "user-id: " + user_id + "\n";
-                logContent += "old-passwd: " + oldPasswd + "\n";
-                logContent += "new-passwd: " + newPasswd + "\n";
-                logRecord(logContent, cmd);
-#endif
             }
         }
         else {
@@ -315,13 +238,6 @@ void runCommand(const string &cmd) {
             argumentCheck(newPasswd, "new-passwd", PASSWD, 30);
             argumentCheck(oldPasswd, "old-passwd", PASSWD, 30);
             changePassword(user_id, newPasswd, oldPasswd);
-#ifdef log
-            logContent += "[log] change password successful.\n";
-            logContent += "user-id: " + user_id + "\n";
-            logContent += "old-passwd: " + oldPasswd + "\n";
-            logContent += "new-passwd: " + newPasswd + "\n";
-            logRecord(logContent, cmd);
-#endif
         }
     }
     else if (cmdType == "select") {
@@ -332,16 +248,10 @@ void runCommand(const string &cmd) {
         argumentCheck(ISBN, "ISBN", SELECT, 20);
         authorityCheck(3, SELECT);
         selectBook(ISBN);
-#ifdef log
-        logContent += "[log] select book successful.\n";
-        logContent += "ISBN: " + ISBN + "\n";
-        logRecord(logContent, cmd);
-        if (nowAuthority() == 3)staffLogRecord(cmdType, ISBN);
-#endif
     }
     else if (cmdType == "modify") {
         if (nowSelected() < 0)throw invalidCommand(MODIFY, NOBOOKSELECTED);
-        Book nowSelectedBook = readData<Book>(BOOK, nowSelected());
+        Book nowSelectedBook = BookManager.read(nowSelected());
         string arg[5];
         ss >> arg[0] >> arg[1] >> arg[2] >> arg[3] >> arg[4];
         ss >> remains;
@@ -380,7 +290,7 @@ void runCommand(const string &cmd) {
                 Element newIndex(nowSelected(), arguments[0]);
                 indexISBN.addElement(newIndex);
                 strcpy(nowSelectedBook.ISBN, arguments[0].c_str());
-                writeData<Book>(BOOK, nowSelectedBook, nowSelected());
+                BookManager.update(nowSelectedBook, nowSelected());
             }
             else throw invalidCommand(MODIFY, WRONGFORMAT, "ISBN");
         }
@@ -398,7 +308,7 @@ void runCommand(const string &cmd) {
                 indexName.addElement(newIndex);
             }
             strcpy(nowSelectedBook.name, arguments[1].c_str());
-            writeData<Book>(BOOK, nowSelectedBook, nowSelected());
+            BookManager.update(nowSelectedBook, nowSelected());
         }
         if (haveThisArgument[2]) {
             argumentCheck(arguments[2], "author", MODIFY, 60);
@@ -414,7 +324,7 @@ void runCommand(const string &cmd) {
                 indexAuthor.addElement(newIndex);
             }
             strcpy(nowSelectedBook.author, arguments[2].c_str());
-            writeData<Book>(BOOK, nowSelectedBook, nowSelected());
+            BookManager.update(nowSelectedBook, nowSelected());
         }
         if (haveThisArgument[3]) {
             argumentCheck(arguments[3], "keyword", MODIFY, 60);
@@ -435,7 +345,7 @@ void runCommand(const string &cmd) {
                 indexKeyWord.addElement(newIndex);
             }
             strcpy(nowSelectedBook.keyword, arguments[3].c_str());
-            writeData<Book>(BOOK, nowSelectedBook, nowSelected());
+            BookManager.update(nowSelectedBook, nowSelected());
         }
         if (haveThisArgument[4]) {
             if (arguments[4].empty())throw invalidCommand(MODIFY, MISSING, "price");
@@ -450,23 +360,8 @@ void runCommand(const string &cmd) {
             double price;
             ss_ >> price;
             nowSelectedBook.price = price;
-            writeData<Book>(BOOK, nowSelectedBook, nowSelected());
+            BookManager.update(nowSelectedBook, nowSelected());
         }
-#ifdef log
-        logContent += "[log] modify book successful.\n";
-        if (haveThisArgument[0]) logContent += "ISBN: from [" + oldISBN + "] to [" + arguments[0] + "]\n";
-        if (haveThisArgument[1])logContent += "name: from [" + oldName + "] to [" + arguments[1] + "]\n";
-        if (haveThisArgument[2])logContent += "author: from [" + oldAuthor + "] to [" + arguments[2] + "]\n";
-        if (haveThisArgument[3])logContent += "keyword: from [" + keyWordStr + "] to [" + arguments[3] + "]\n";
-        logRecord(logContent, cmd);
-        string argForLog;
-        for (int i = 0; i < 5; i++) {
-            if (haveThisArgument[i])argForLog += arguments[i];
-            else argForLog += "--";
-            if (i < 4)argForLog += " ";
-        }
-        if (nowAuthority() == 3)staffLogRecord(cmdType, argForLog);
-#endif
     }
     else if (cmdType == "import") {
         string _quantity, _cost_price;
@@ -490,18 +385,10 @@ void runCommand(const string &cmd) {
         authorityCheck(3, IMPORT);
         if (quantity >= 1000000)throw invalidCommand(BUY, WRONGFORMAT, "quantity");
         import(quantity, cost_price);
-        string ISBN = readData<Book>(BOOK, nowSelected()).ISBN;
+        string ISBN = BookManager.read(nowSelected()).ISBN;
         string user_id = accountStack[accountStack.size() - 1].userID;
         Entry temp(ISBN, user_id, nowAuthority(), -quantity, -cost_price);
         entryRecord(temp);
-#ifdef log
-        logContent += "[log] import successful.\n";
-        logContent += "ISBN: " + ISBN + "\n";
-        logContent += "quantity: " + _quantity + "\n";
-        logContent += "coat_price: " + _cost_price + "\n";
-        logRecord(logContent, cmd);
-        if (nowAuthority() == 3)staffLogRecord(cmdType, ISBN + " " + _quantity + " " + _cost_price);
-#endif
     }
     else if (cmdType == "show") {
         string argument;
@@ -513,80 +400,52 @@ void runCommand(const string &cmd) {
             if (!remains.empty())throw invalidCommand(SHOW, REMAINS);
             authorityCheck(7, SHOW);
             if (_times.empty()) {
-                cout << setiosflags(ios::fixed) << setprecision(2) << "+ " << totalIncome << " - " << totalExpense << "\n";
-#ifdef log
-                logContent += "[log] show all finance successful.\n";
-                logRecord(logContent, cmd);
-#endif
+                cout << setiosflags(ios::fixed) << setprecision(2) << "+ " << basicData.totalIncome << " - " << basicData.totalExpense << "\n";
             }
             else {
                 TokenScanner ss0(_times);
                 int times;
                 ss0 >> times;
-                if (times > totalTransaction)throw invalidCommand(SHOW, WRONGFORMAT, "times");
+                if (times > basicData.totalTransaction)throw invalidCommand(SHOW, WRONGFORMAT, "times");
                 double income = 0, expense = 0;
-                calculateEntry(totalTransaction - times, totalTransaction, income, expense);
+                calculateEntry(basicData.totalTransaction - times, basicData.totalTransaction, income, expense);
                 cout << setiosflags(ios::fixed) << setprecision(2) << "+ " << income << " - " << expense << "\n";
-#ifdef log
-                logContent += "[log] show recent " + _times + " times finance successful.\n";
-                logContent += "times: " + _times + "\n";
-                logRecord(logContent, cmd);
-#endif
             }
         }
         else {
             authorityCheck(1, SHOW);
             if (argument.empty()) {
-                if (bookNumber == 0)cout << "\n";
+                if (basicData.bookNumber == 0)cout << "\n";
                 else {
                     vector<Book> allBook;
-                    for (int i = 0; i < bookNumber; i++) {
-                        Book tempBook = readData<Book>(BOOK, i * sizeof(Book));
+                    vector<int> allOffset;
+                    indexISBN.traversal(allOffset);
+                    for (auto i:allOffset) {
+                        Book tempBook = BookManager.read(i);
                         allBook.push_back(tempBook);
                     }
                     sort(allBook.begin(), allBook.end());
                     for (Book i:allBook)i.show();
                 }
-#ifdef log
-                logContent += "[log] show all books successful.\n";
-                logRecord(logContent, cmd);
-                if (nowAuthority() == 3)staffLogRecord(cmdType, "-- -- -- --");
-#endif
             }
             else {
                 ss >> remains;
                 if (!remains.empty())throw invalidCommand(SHOW, REMAINS);
                 argumentType type = getArgumentType(SHOW, argument);
                 if (type > 3)throw invalidCommand(SHOW, WRONGFORMAT, "arguments");
-#ifdef log
-                logContent += "[log] show books successful.\n";
-                string argForLog;
-#endif
                 deleteArgumentType(argument, type, SHOW);
                 vector<int> possibleOffset;
                 if (type == ISBN_) {
                     argumentCheck(argument, "ISBN", SHOW, 20);
                     indexISBN.findElement(argument, possibleOffset);
-#ifdef log
-                    logContent += "ISBN: [" + argument + "]\n";
-                    argForLog += argument + " -- -- --";
-#endif
                 }
                 else if (type == NAME_) {
                     argumentCheck(argument, "name", SHOW, 60);
                     indexName.findElement(argument, possibleOffset);
-#ifdef log
-                    logContent += "name: [" + argument + "]\n";
-                    argForLog += "-- " + argument + " -- --";
-#endif
                 }
                 else if (type == AUTHOR_) {
                     argumentCheck(argument, "author", SHOW, 60);
                     indexAuthor.findElement(argument, possibleOffset);
-#ifdef log
-                    logContent += "author: [" + argument + "]\n";
-                    argForLog += "-- -- " + argument + " --";
-#endif
                 }
                 else {
                     argumentCheck(argument, "keyword", SHOW, 60);
@@ -600,25 +459,17 @@ void runCommand(const string &cmd) {
                             if (find(possibleOffset.begin(), possibleOffset.end(), j) == possibleOffset.end())possibleOffset.push_back(j);
                         }
                     }
-#ifdef log
-                    logContent += "keyword: [" + argument + "]\n";
-                    argForLog += "-- -- -- " + argument;
-#endif
                 }
                 if (possibleOffset.empty())cout << "\n";
                 else {
                     vector<Book> possibleBook;
                     for (int i:possibleOffset) {
-                        Book temp = readData<Book>(BOOK, i);
+                        Book temp = BookManager.read(i);
                         possibleBook.push_back(temp);
                     }
                     sort(possibleBook.begin(), possibleBook.end());
                     for (Book i:possibleBook)i.show();
                 }
-#ifdef log
-                logRecord(logContent, cmd);
-                if (nowAuthority() == 3)staffLogRecord(cmdType, argForLog);
-#endif
             }
         }
     }
@@ -640,103 +491,7 @@ void runCommand(const string &cmd) {
         string user_id = accountStack[accountStack.size() - 1].userID;
         Entry temp(ISBN, user_id, nowAuthority(), quantity, totalPrice);
         entryRecord(temp);
-#ifdef log
-        logContent += "[log] buy books successful.\n";
-        logContent += "ISBN: " + ISBN + "\n";
-        logContent += "quantity: " + _quantity + "\n";
-        logRecord(logContent, cmd);
-        if (nowAuthority() == 3)staffLogRecord(cmdType, ISBN + " " + _quantity);
-#endif
     }
-#ifdef log
-        else if (cmdType == "report") {
-            string reportType;
-            ss >> reportType;
-            if (reportType == "finance") {
-                ss >> remains;
-                if (!remains.empty())throw invalidCommand(REPORTFINANCE, REMAINS);
-                authorityCheck(7, REPORTFINANCE);
-                reportFinance();
-            }
-            else if (reportType == "employee") {
-                ss >> remains;
-                if (!remains.empty())throw invalidCommand(REPORTEMPLOYEE, REMAINS);
-                authorityCheck(7, REPORTEMPLOYEE);
-                reportEmployee();
-            }
-            else if (reportType == "myself") {
-                ss >> remains;
-                if (!remains.empty())throw invalidCommand(REPORTMYSELF, REMAINS);
-                if (nowAuthority() < 3)throw invalidCommand(REPORTMYSELF, INADEQUATEAUTHORITY);
-                if (nowAuthority() == 7)throw invalidCommand(REPORTMYSELF, BOSSREPORTITSELF);
-                string userID = accountStack[accountStack.size() - 1].userID;
-                reportMyself(userID, true);
-            }
-            else throw invalidCommand(UNKNOWN, UNKNOWNERROR);
-        }
-        else if (cmdType == "log") {
-            ss >> remains;
-            if (!remains.empty())throw invalidCommand(LOG, REMAINS);
-            authorityCheck(7, LOG);
-            showLog();
-        }
-#endif
-#ifdef customCommand
-        else if (cmdType == "cmd") {
-            fstream fs;
-            string _cmd;
-            fs.open(COMMAND_FILENAME, ios::in);
-            while (getline(fs, _cmd))cout << _cmd << "\n";
-            cout.flush();
-            fs.close();
-        }
-        else if (cmdType == "clear") {
-            fstream fs;
-            //create file
-            fs.open(LOG_FILENAME, ios::out);
-            fs.close();
-            fs.open(COMMAND_FILENAME, ios::out);
-            fs.close();
-            fs.open(STAFF_DATA_FILENAME, ios::out);
-            fs.close();
-            fs.open(STAFF_LOG_FILENAME, ios::out);
-            fs.close();
-            fs.open(BILL_FILENAME, ios::out);
-            fs.close();
-            fs.open(BASIC_DATA_FILENAME, ios::out);
-            fs.close();
-            fs.open(USER_DATA_FILENAME, ios::out);
-            fs.close();
-            fs.open(BOOK_DATA_FILENAME, ios::out);
-            fs.close();
-            fs.open(INDEX_USERID_FILENAME, ios::out);
-            fs.close();
-            fs.open(INDEX_ISBN_FILENAME, ios::out);
-            fs.close();
-            fs.open(INDEX_AUTHOR_FILENAME, ios::out);
-            fs.close();
-            fs.open(INDEX_NAME_FILENAME, ios::out);
-            fs.close();
-            fs.open(INDEX_KEYWORD_FILENAME, ios::out);
-            fs.close();
-            
-            //create root account
-            UserAccount root(7, "root", "root", "sjtu");
-            int offset = writeData<UserAccount>(USER, root);
-            Element temp(offset, "root");
-            indexUserID.addElement(temp);
-            
-            //set basic data
-            bookNumber = 0;
-            totalTransaction = 0;
-            totalExpense = 0;
-            totalIncome = 0;
-            writeBasicData<int>(BOOKNUMBER, bookNumber);
-            writeBasicData<int>(TRANSACTION, totalTransaction);
-            writeBasicData<double>(EXPENSE, totalExpense);
-            writeBasicData<double>(INCOME, totalIncome);
-        }
-#endif
     else throw invalidCommand(UNKNOWN, UNKNOWNERROR);
 }
 
@@ -761,225 +516,7 @@ void calculateEntry(int start, int end, double &income, double &expense) {
     fs.close();
 }
 
-#ifdef log
-
-void staffRecord(const string &userID) {
-    char user_id[30] = {0};
-    strcpy(user_id, userID.c_str());
-    fstream fs;
-    fs.open(STAFF_DATA_FILENAME, ios::in | ios::out | ios::binary);
-    fs.seekp(0, ios::end);
-    fs.write(user_id, sizeof(user_id));
-    fs.close();
-}
-
-void getStaff(vector<string> &staff) {
-    char user_id[30];
-    string userID;
-    fstream fs;
-    fs.open(STAFF_DATA_FILENAME, ios::in | ios::binary);
-    fs.seekg(0);
-    fs.read(user_id, sizeof(user_id));
-    while (!fs.eof()) {
-        userID = user_id;
-        staff.push_back(userID);
-        fs.read(user_id, sizeof(user_id));
-    }
-    fs.close();
-}
-
-void logRecord(string logContent, const string &cmd) {
-    logContent += "[original command] ";
-    logContent += cmd;
-    logContent += "\n";
-    
-    string userStr;
-    if (accountStack.empty()) userStr += "no user login now";
-    else {
-        string user_id, name;
-        user_id = accountStack[accountStack.size() - 1].userID;
-        name = accountStack[accountStack.size() - 1].name;
-        userStr += "user-id: [" + user_id + "], name: [" + name + "]";
-    }
-    logContent += "[operator] " + userStr + "\n";
-    
-    time_t now = time(nullptr);
-    string timeStr = ctime(&now);
-    logContent += "[operating time] " + timeStr + "\n";
-    
-    fstream fs;
-    fs.open(LOG_FILENAME, ios::in | ios::out | ios::app);
-    fs << logContent;
-    fs.close();
-    fs.open(COMMAND_FILENAME, ios::in | ios::out | ios::app);
-    fs << cmd << endl;
-    fs.close();
-
-#ifdef showLogContent
-    cout << "[debug] logContent:" << endl;
-    cout << logContent;
-#endif
-}
-
-void staffLogRecord(const string &type, const string &arguments) {
-    //"--" represent no this argument
-    string staffLogContent;
-    string user_id = accountStack[accountStack.size() - 1].userID;
-    staffLogContent += user_id + " ";
-    staffLogContent += type + " ";
-    staffLogContent += arguments;
-    
-    fstream fs;
-    fs.open(STAFF_LOG_FILENAME, ios::in | ios::out | ios::app);
-    fs << staffLogContent << endl;
-    fs.close();
-}
-
-#endif
-
 //commandFunction:-----/\
-
-
-
-//basicCommand:--------\/
-
-#ifdef log
-
-void reportFinance() {
-    cout << "----------------------------------------" << endl;
-    Entry tempEntry;
-    cout << "[function] report finance:" << endl;
-    fstream fs;
-    fs.open(BILL_FILENAME, ios::in | ios::binary);
-    for (int i = 0; i < totalTransaction; i++) {
-        fs.read(reinterpret_cast<char *>(&tempEntry), sizeof(Entry));
-        cout << "[cnt] No." << i << " entry:" << endl;
-        if (tempEntry.quantity < 0) {
-            cout << "[import] during " << tempEntry.dealTime;
-            if (tempEntry.operatorAuthority == 3)cout << "employee";
-            else cout << "boss";
-            cout << " [" << tempEntry.userID << "] import ISBN: [" << tempEntry.ISBN << "] for quantity: [" << -tempEntry.quantity << "]" << endl;
-            cout << "[cost] " << setiosflags(ios::fixed) << setprecision(2) << -tempEntry.totalPrice << endl;
-        }
-        else {
-            cout << "[buy] during " << tempEntry.dealTime;
-            cout << "[operator] ";
-            if (tempEntry.operatorAuthority == 1)cout << "customer";
-            else if (tempEntry.operatorAuthority == 3)cout << "employee";
-            else cout << "boss";
-            cout << " [" << tempEntry.userID << "] buy ISBN: [" << tempEntry.ISBN << "[ for quantity: [" << tempEntry.quantity << "]" << endl;
-            cout << "[income] " << setiosflags(ios::fixed) << setprecision(2) << tempEntry.totalPrice << endl;
-        }
-    }
-    cout << "----------------------------------------" << endl;
-    fs.close();
-}
-
-void reportEmployee() {
-    cout << "----------------------------------------" << endl;
-    cout << "[function] report employee:" << endl;
-    vector<string> staff;
-    getStaff(staff);
-    int cnt = 0;
-    for (const string &i:staff) {
-        cout << "[cnt] staff No." << ++cnt << ":" << endl;
-        reportMyself(i, false);
-        cout << endl;
-    }
-    cout << "----------------------------------------" << endl;
-}
-
-void reportMyself(const string &userID, bool flag) {
-    //useradd(4 user-id, passwd, authority, name)
-    //select(1 ISBN)
-    //modify(5 ISBN, name, author, keyword, price)
-    //import(2 quantity, cost_price)
-    //show(4 ISBN, name, author, keyword)
-    //buy(2 ISBN, quantity)
-    cout << "--------------------" << endl;
-    if (flag) cout << "[function] report myself:" << endl;
-    cout << "[user-id] " << userID << endl;
-    int cnt = 0;
-    string staffCmd;
-    fstream fs;
-    fs.open(STAFF_LOG_FILENAME, ios::in);
-    while (getline(fs, staffCmd)) {
-        TokenScanner ss(staffCmd);
-        string nowUserID;
-        ss >> nowUserID;
-        if (nowUserID != userID)continue;
-        cout << endl;
-        string cmdType;
-        ss >> cmdType;
-        cout << "[cnt] No." << ++cnt << " operation:" << endl;
-        if (cmdType == "useradd") {
-            string user_id, passwd, authority, name;
-            ss >> user_id >> passwd >> authority >> name;
-            cout << "[useradd]" << endl;
-            cout << "[user-id] " << user_id << endl;
-            cout << "[passwd] " << passwd << endl;
-            cout << "[authority] " << authority << endl;
-            cout << "[name] " << name << endl;
-        }
-        else if (cmdType == "select") {
-            string ISBN;
-            ss >> ISBN;
-            cout << "[select]" << endl;
-            cout << "[ISBN] " << ISBN << endl;
-        }
-        else if (cmdType == "modify") {
-            string ISBN, name, author, keyword, price;
-            ss >> ISBN >> name >> author >> keyword >> price;
-            cout << "[modify]" << endl;
-            cout << "[ISBN] " << ISBN << endl;
-            cout << "[name] " << name << endl;
-            cout << "[author] " << author << endl;
-            cout << "[keyword] " << keyword << endl;
-            cout << "[price] " << price << endl;
-        }
-        else if (cmdType == "import") {
-            string quantity, cost_price;
-            ss >> quantity >> cost_price;
-            cout << "[import]" << endl;
-            cout << "[quantity] " << quantity << endl;
-            cout << "[cost_price] " << cost_price << endl;
-        }
-        else if (cmdType == "show") {
-            string ISBN, name, author, keyword;
-            ss >> ISBN >> name >> author >> keyword;
-            cout << "[show]" << endl;
-            cout << "[ISBN] " << ISBN << endl;
-            cout << "[name] " << name << endl;
-            cout << "[author] " << author << endl;
-            cout << "[keyword] " << keyword << endl;
-        }
-        else if (cmdType == "buy") {
-            string ISBN, quantity;
-            ss >> ISBN >> quantity;
-            cout << "[buy]" << endl;
-            cout << "[ISBN] " << ISBN << endl;
-            cout << "[quantity] " << quantity << endl;
-        }
-    }
-    if (flag)cout << "[error] you have no operation" << endl;
-    else {
-        if (cnt == 0)cout << "[error] this employee has no operation" << endl;
-    }
-    cout << "--------------------" << endl;
-    fs.close();
-}
-
-void showLog() {
-    string logContent;
-    fstream fs;
-    fs.open(LOG_FILENAME, ios::in);
-    while (getline(fs, logContent))cout << logContent << endl;
-    fs.close();
-}
-
-#endif
-
-//basicCommand:--------/\
 
 
 
@@ -990,39 +527,37 @@ void selectBook(const string &ISBN) {
     indexISBN.findElement(ISBN, possibleOffset);
     if (possibleOffset.empty()) {
         Book addBook(0, 0, ISBN, "", "", "");
-        int offset = writeData<Book>(BOOK, addBook);
+        int offset = BookManager.write(addBook);
         Element temp(offset, ISBN);
         indexISBN.addElement(temp);
         selectedBookOffsetStack[selectedBookOffsetStack.size() - 1] = offset;
-        bookNumber++;
-        writeBasicData<int>(BOOKNUMBER, bookNumber);
+        basicData.bookNumber++;
+        BookManager.updateExtraMessage(basicData);
     }
     else selectedBookOffsetStack[selectedBookOffsetStack.size() - 1] = possibleOffset[0];
 }
 
 void import(int quantity, double cost_price) {
     if (nowSelected() < 0)throw invalidCommand(IMPORT, NOBOOKSELECTED);
-    Book nowSelectedBook = readData<Book>(BOOK, nowSelected());
+    Book nowSelectedBook = BookManager.read(nowSelected());
     nowSelectedBook.quantity += quantity;
-    writeData<Book>(BOOK, nowSelectedBook, nowSelected());
-    totalExpense += cost_price;
-    writeBasicData<double>(EXPENSE, totalExpense);
-    totalTransaction++;
-    writeBasicData<int>(TRANSACTION, totalTransaction);
+    BookManager.update(nowSelectedBook, nowSelected());
+    basicData.totalExpense += cost_price;
+    basicData.totalTransaction++;
+    BookManager.updateExtraMessage(basicData);
 }
 
 double buy(const string &ISBN, int quantity) {
     vector<int> possibleOffset;
     indexISBN.findElement(ISBN, possibleOffset);
     if (possibleOffset.empty())throw invalidCommand(BUY, INEXISTBOOK);
-    Book buyBook = readData<Book>(BOOK, possibleOffset[0]);
+    Book buyBook = BookManager.read(possibleOffset[0]);
     if (buyBook.quantity < quantity)throw invalidCommand(BUY, NOENOUGHINVENTORY);
     buyBook.quantity -= quantity;
-    writeData<Book>(BOOK, buyBook, possibleOffset[0]);
-    totalIncome += quantity * buyBook.price;
-    writeBasicData<double>(INCOME, totalIncome);
-    totalTransaction++;
-    writeBasicData<int>(TRANSACTION, totalTransaction);
+    BookManager.update(buyBook, possibleOffset[0]);
+    basicData.totalIncome += quantity * buyBook.price;
+    basicData.totalTransaction++;
+    BookManager.updateExtraMessage(basicData);
     return buyBook.price;
 }
 
@@ -1037,7 +572,7 @@ void login(const string &userID, const string &password) {
         vector<int> possibleOffset;
         indexUserID.findElement(userID, possibleOffset);
         if (possibleOffset.empty())throw invalidCommand(SU, INEXISTACCOUNT, userID);
-        UserAccount loginAccount(readData<UserAccount>(USER, possibleOffset[0]));
+        UserAccount loginAccount(UserManager.read(possibleOffset[0]));
         int auth = loginAccount.authority;
         if (nowAuthority() > auth) {
             accountStack.push_back(loginAccount);
@@ -1049,7 +584,7 @@ void login(const string &userID, const string &password) {
         vector<int> possibleOffset;
         indexUserID.findElement(userID, possibleOffset);
         if (possibleOffset.empty())throw invalidCommand(SU, INEXISTACCOUNT, userID);
-        UserAccount loginAccount(readData<UserAccount>(USER, possibleOffset[0]));
+        UserAccount loginAccount(UserManager.read(possibleOffset[0]));
         string userPassword = loginAccount.password;
         if (userPassword == password) {
             accountStack.push_back(loginAccount);
@@ -1068,13 +603,13 @@ UserAccount logout() {
 }
 
 void addAccount(const UserAccount &o, const string &userID) {
-    int offset = writeData<UserAccount>(USER, o);
+    int offset = UserManager.write(o);
     Element temp(offset, userID);
     indexUserID.addElement(temp);
 }
 
 void registerAccount(const UserAccount &o, const string &userID) {
-    int offset = writeData<UserAccount>(USER, o);
+    int offset = UserManager.write(o);
     Element temp(offset, userID);
     indexUserID.addElement(temp);
 }
@@ -1084,7 +619,7 @@ void deleteAccount(const string &userID) {
     vector<int> possibleOffset;
     indexUserID.findElement(userID, possibleOffset);
     if (possibleOffset.empty())throw invalidCommand(DELETE, INEXISTACCOUNT, userID);
-    UserAccount deletedAccount(readData<UserAccount>(USER, possibleOffset[0]));
+    UserAccount deletedAccount(UserManager.read(possibleOffset[0]));
     if (find(accountStack.begin(), accountStack.end(), deletedAccount) != accountStack.end())throw invalidCommand(DELETE, DELETEALREADYLOGINACCOUNT);
     Element temp(possibleOffset[0], userID);
     indexUserID.deleteElement(temp);
@@ -1094,13 +629,13 @@ void changePassword(const string &userID, const string &newPassword, const strin
     vector<int> possibleOffset;
     indexUserID.findElement(userID, possibleOffset);
     if (possibleOffset.empty())throw invalidCommand(PASSWD, INEXISTACCOUNT, userID);
-    UserAccount changeAccount = readData<UserAccount>(USER, possibleOffset[0]);
+    UserAccount changeAccount = UserManager.read(possibleOffset[0]);
     if (!oldPassword.empty()) {
         string nowPassword = changeAccount.password;
         if (nowPassword != oldPassword)throw invalidCommand(PASSWD, WRONGOLDPASSWORD);
     }
     strcpy(changeAccount.password, newPassword.c_str());
-    writeData<UserAccount>(USER, changeAccount, possibleOffset[0]);
+    UserManager.update(changeAccount, possibleOffset[0]);
 }
 
 //userCommand:---------/\
