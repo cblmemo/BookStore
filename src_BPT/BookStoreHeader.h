@@ -25,14 +25,10 @@ using RainyMemory::TokenScanner;
 
 //file name
 #define LOG_FILENAME "log.dat"
-#define COMMAND_FILENAME "command.dat"
-#define STAFF_LOG_FILENAME "staffLog.dat"
 #define BILL_FILENAME "bill.dat"
 
-#define BASIC_DATA_FILENAME "basicData.dat"
 #define USER_DATA_FILENAME "userData.dat"
 #define BOOK_DATA_FILENAME "bookData.dat"
-#define STAFF_DATA_FILENAME "staffData.dat"
 
 #define INDEX_USERID_FILENAME "indexUserID"
 #define INDEX_ISBN_FILENAME "indexISBN"
@@ -40,30 +36,7 @@ using RainyMemory::TokenScanner;
 #define INDEX_NAME_FILENAME "indexName"
 #define INDEX_KEYWORD_FILENAME "indexKeyWord"
 
-//error message
-#define REMAINS_ERROR_MESSAGE "redundant information"//all
-#define INADEQUATE_AUTHORITY_MESSAGE "inadequate authority"//all
-#define WRONG_PASSWORD_MESSAGE "password wrong"//su, passwd
-#define NO_USER_LOGIN_NOW_MESSAGE "no user login now"//logout
-#define DELETE_ROOT_ACCOUNT_MESSAGE "cannot delete root account"//delete
-#define DELETE_ALREADY_LOGIN_ACCOUNT_MESSAGE "cannot delete account that is already login"//delete
-#define WRONG_OLD_PASSWORD_MESSAGE "old password wrong"//passwd
-#define NO_BOOK_SELECTED_MESSAGE "no book was selected"//modify, import
-#define REPEATED_KEYWORDS_MESSAGE "repeated keywords"//modify
-#define INEXIST_BOOK_MESSAGE "this book doesn't exist"//buy
-#define NO_ENOUGH_INVENTORY_MESSAGE "no enough inventory"//buy
-#define BOSS_REPORT_ITSELF_MESSAGE "boss trying to report itself"//report myself
-#define UNKNOWN_ERROR_MESSAGE "unknown error"
-
 //enum type:-----------\/
-
-enum basicDataType {
-    BOOKNUMBER, TRANSACTION, EXPENSE, INCOME
-};
-
-enum saveDataType {
-    USER, BOOK
-};
 
 enum argumentType {
     ISBN_, NAME_, AUTHOR_, KEYWORD_, PRICE_, INVALID_

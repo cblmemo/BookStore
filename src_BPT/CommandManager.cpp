@@ -6,7 +6,7 @@
 
 //#define debug
 //#define showLogContent
-//#define customCommand
+#define customCommand
 
 const string argumentName[5] = {"ISBN", "name", "author", "keyword", "price"};
 
@@ -41,19 +41,7 @@ void initialize() {
         //create file
         fs.open(LOG_FILENAME, ios::out);
         fs.close();
-        fs.open(COMMAND_FILENAME, ios::out);
-        fs.close();
-        fs.open(STAFF_DATA_FILENAME, ios::out);
-        fs.close();
-        fs.open(STAFF_LOG_FILENAME, ios::out);
-        fs.close();
         fs.open(BILL_FILENAME, ios::out);
-        fs.close();
-        fs.open(BASIC_DATA_FILENAME, ios::out);
-        fs.close();
-        fs.open(USER_DATA_FILENAME, ios::out);
-        fs.close();
-        fs.open(BOOK_DATA_FILENAME, ios::out);
         fs.close();
         
         //create root account
@@ -133,6 +121,7 @@ void argumentCheck(const string &argument, const string &argumentNameStr, comman
 }
 
 void runCommand(const string &cmd) {
+//    cout << "# " << cmd << endl;
     TokenScanner ss(cmd);
     string cmdType;
     string remains;
@@ -572,7 +561,7 @@ void login(const string &userID, const string &password) {
         vector<int> possibleOffset;
         indexUserID.findElement(userID, possibleOffset);
         if (possibleOffset.empty())throw invalidCommand(SU, INEXISTACCOUNT, userID);
-        UserAccount loginAccount(UserManager.read(possibleOffset[0]));
+        UserAccount loginAccount = UserManager.read(possibleOffset[0]);
         int auth = loginAccount.authority;
         if (nowAuthority() > auth) {
             accountStack.push_back(loginAccount);
@@ -584,7 +573,7 @@ void login(const string &userID, const string &password) {
         vector<int> possibleOffset;
         indexUserID.findElement(userID, possibleOffset);
         if (possibleOffset.empty())throw invalidCommand(SU, INEXISTACCOUNT, userID);
-        UserAccount loginAccount(UserManager.read(possibleOffset[0]));
+        UserAccount loginAccount = UserManager.read(possibleOffset[0]);
         string userPassword = loginAccount.password;
         if (userPassword == password) {
             accountStack.push_back(loginAccount);
@@ -619,7 +608,7 @@ void deleteAccount(const string &userID) {
     vector<int> possibleOffset;
     indexUserID.findElement(userID, possibleOffset);
     if (possibleOffset.empty())throw invalidCommand(DELETE, INEXISTACCOUNT, userID);
-    UserAccount deletedAccount(UserManager.read(possibleOffset[0]));
+    UserAccount deletedAccount = UserManager.read(possibleOffset[0]);
     if (find(accountStack.begin(), accountStack.end(), deletedAccount) != accountStack.end())throw invalidCommand(DELETE, DELETEALREADYLOGINACCOUNT);
     Element temp(possibleOffset[0], userID);
     indexUserID.deleteElement(temp);
