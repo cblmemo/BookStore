@@ -5,8 +5,8 @@
 #include "BookStoreHeader.h"
 
 //#define debug
-#define showLogContent
-#define customCommand
+//#define showLogContent
+//#define customCommand
 
 const string argumentName[5] = {"ISBN", "name", "author", "keyword", "price"};
 
