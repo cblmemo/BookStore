@@ -26,8 +26,8 @@ BPlusTree indexAuthor(INDEX_AUTHOR_FILENAME);
 BPlusTree indexName(INDEX_NAME_FILENAME);
 BPlusTree indexKeyWord(INDEX_KEYWORD_FILENAME);
 
-LRUCacheMemoryPool<Book, BasicData> BookManager(BOOK_DATA_FILENAME, 100000);
-LRUCacheMemoryPool<UserAccount, BasicData> UserManager(USER_DATA_FILENAME, 100000);
+LRUCacheMemoryPool<Book, BasicData> BookManager(BOOK_DATA_FILENAME, 10000);
+LRUCacheMemoryPool<UserAccount, BasicData> UserManager(USER_DATA_FILENAME, 10000);
 
 //commandFunction:-----\/
 
@@ -121,7 +121,6 @@ void argumentCheck(const string &argument, const string &argumentNameStr, comman
 }
 
 void runCommand(const string &cmd) {
-//    cout << "# " << cmd << endl;
     TokenScanner ss(cmd);
     string cmdType;
     string remains;
