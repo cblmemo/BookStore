@@ -313,7 +313,7 @@ namespace RainyMemory {
             int rightBrother = -1;
             bool childNodeIsLeaf = false;
             int keyNumber = 0;
-            key nodeKey[MAX_KEY_NUM] = {};
+            key nodeKey[MAX_KEY_NUM];
             int childNode[MAX_CHILD_NUM] = {0};
         
         public:
@@ -674,12 +674,12 @@ namespace RainyMemory {
     
     private:
         void initialize(const key &o1, const data &o2) {
-            internalNode rootNode {};
+            internalNode rootNode;
             rootNode.offset = internalPool->tellWritePoint();
             rootNode.childNodeIsLeaf = true;
             rootNode.childNode[0] = leafPool->tellWritePoint();
             internalPool->write(rootNode);
-            leafNode tempNode {};
+            leafNode tempNode;
             tempNode.father = rootNode.offset;
             tempNode.offset = rootNode.childNode[0];
             tempNode.dataNumber = 1;

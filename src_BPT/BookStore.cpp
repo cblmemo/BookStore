@@ -5,17 +5,17 @@
 #include "BookStoreHeader.h"
 
 Book::Book() {
-    memset(ISBN, 0, sizeof(ISBN));
-    memset(name, 0, sizeof(name));
-    memset(author, 0, sizeof(author));
-    memset(keyword, 0, sizeof(keyword));
+//    memset(ISBN, 0, sizeof(ISBN));
+//    memset(name, 0, sizeof(name));
+//    memset(author, 0, sizeof(author));
+//    memset(keyword, 0, sizeof(keyword));
 }
 
 Book::Book(double _price, int _quantity, const string &ISBN_, const string &_name, const string &_author, const string &_keyword) : price(_price), quantity(_quantity) {
-    memset(ISBN, 0, sizeof(ISBN));
-    memset(name, 0, sizeof(name));
-    memset(author, 0, sizeof(author));
-    memset(keyword, 0, sizeof(keyword));
+//    memset(ISBN, 0, sizeof(ISBN));
+//    memset(name, 0, sizeof(name));
+//    memset(author, 0, sizeof(author));
+//    memset(keyword, 0, sizeof(keyword));
     strcpy(ISBN, ISBN_.c_str());
     strcpy(name, _name.c_str());
     strcpy(author, _author.c_str());
@@ -31,15 +31,15 @@ bool Book::operator<(const Book &o) const {
 }
 
 UserAccount::UserAccount() {
-    memset(userID, 0, sizeof(userID));
-    memset(name, 0, sizeof(name));
-    memset(password, 0, sizeof(password));
+//    memset(userID, 0, sizeof(userID));
+//    memset(name, 0, sizeof(name));
+//    memset(password, 0, sizeof(password));
 }
 
 UserAccount::UserAccount(int _authority, const string &_userID, const string &_name, const string &_password) : authority(_authority) {
-    memset(userID, 0, sizeof(userID));
-    memset(name, 0, sizeof(name));
-    memset(password, 0, sizeof(password));
+//    memset(userID, 0, sizeof(userID));
+//    memset(name, 0, sizeof(name));
+//    memset(password, 0, sizeof(password));
     strcpy(userID, _userID.c_str());
     strcpy(name, _name.c_str());
     strcpy(password, _password.c_str());
