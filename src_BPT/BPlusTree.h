@@ -80,11 +80,6 @@ namespace RainyMemory {
             data leafData[MAX_RECORD_NUM];
         
         public:
-            leafNode() {
-                memset(leafKey, 0, sizeof(leafKey));
-                memset(leafData, 0, sizeof(leafData));
-            }
-            
             void addElement(BPlusTree *tree, const key &o1, const data &o2) {
                 int pos = upper_bound(leafKey, leafKey + dataNumber, o1) - leafKey;
                 for (int i = dataNumber - 1; i >= pos; i--) {
@@ -317,10 +312,6 @@ namespace RainyMemory {
             int childNode[MAX_CHILD_NUM] = {0};
         
         public:
-            internalNode() {
-                memset(nodeKey, 0, sizeof(nodeKey));
-            }
-            
             void addElement(BPlusTree *tree, const splitNodeReturn &o, int pos) {
                 for (int i = keyNumber - 1; i >= pos; i--) {
                     childNode[i + 2] = childNode[i + 1];
