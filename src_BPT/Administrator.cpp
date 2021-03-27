@@ -13,7 +13,7 @@ void Administrator::runProgramme() {
         if (cmd == "exit" || cmd == "quit")break;
         try {
             runCommand(cmd);
-        } catch (...) {
+        } catch (invalidCommand &ex) {
             cout << "Invalid\n";
         }
     }
