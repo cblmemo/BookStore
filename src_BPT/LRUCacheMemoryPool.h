@@ -175,7 +175,7 @@ namespace RainyMemory {
         }
     
     public:
-        explicit LRUCacheMemoryPool(const string &_filename, int _capacity = 100) : filename(_filename), cache(_capacity) {
+        explicit LRUCacheMemoryPool(const string &_filename, int _capacity = 100) : filename(_filename), cache(_capacity), hashmap(_capacity) {
             fin.open(filename, ios::in);
             if (fin.fail()) {
                 fin.clear();
