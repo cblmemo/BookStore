@@ -32,12 +32,12 @@ namespace RainyMemory {
             key nodeKey;
         };
         
-        struct insertReturn{
+        struct insertReturn {
             bool childNodeNumberIncreased;
             splitNodeReturn node;
         };
         
-        struct eraseReturn{
+        struct eraseReturn {
             int fatherNodeOffset;
             int nowNodeOffset;//to find index in fatherNode
             bool sonNodeNeedResize;
@@ -80,6 +80,11 @@ namespace RainyMemory {
             data leafData[MAX_RECORD_NUM];
         
         public:
+            leafNode() {
+                memset(leafKey, 0, sizeof(leafKey));
+                memset(leafData, 0, sizeof(leafData));
+            }
+            
             void addElement(BPlusTree *tree, const key &o1, const data &o2) {
                 int pos = upper_bound(leafKey, leafKey + dataNumber, o1) - leafKey;
                 for (int i = dataNumber - 1; i >= pos; i--) {
@@ -308,10 +313,14 @@ namespace RainyMemory {
             int rightBrother = -1;
             bool childNodeIsLeaf = false;
             int keyNumber = 0;
-            key nodeKey[MAX_KEY_NUM];
+            key nodeKey[MAX_KEY_NUM] = {};
             int childNode[MAX_CHILD_NUM] = {0};
         
         public:
+            internalNode() {
+                memset(nodeKey, 0, sizeof(nodeKey));
+            }
+            
             void addElement(BPlusTree *tree, const splitNodeReturn &o, int pos) {
                 for (int i = keyNumber - 1; i >= pos; i--) {
                     childNode[i + 2] = childNode[i + 1];
@@ -665,12 +674,12 @@ namespace RainyMemory {
     
     private:
         void initialize(const key &o1, const data &o2) {
-            internalNode rootNode;
+            internalNode rootNode {};
             rootNode.offset = internalPool->tellWritePoint();
             rootNode.childNodeIsLeaf = true;
             rootNode.childNode[0] = leafPool->tellWritePoint();
             internalPool->write(rootNode);
-            leafNode tempNode;
+            leafNode tempNode {};
             tempNode.father = rootNode.offset;
             tempNode.offset = rootNode.childNode[0];
             tempNode.dataNumber = 1;
@@ -736,7 +745,7 @@ namespace RainyMemory {
                 eraseReturn temp;
                 temp.fatherNodeOffset = nowNode.father;
                 temp.nowNodeOffset = nowNode.offset;
-                temp.sonNodeNeedResize =targetNode.resize(this, nowNode, index);
+                temp.sonNodeNeedResize = targetNode.resize(this, nowNode, index);
                 temp.eraseSucceed = deleted;
                 return temp;
             }
@@ -751,7 +760,7 @@ namespace RainyMemory {
                     //find index, use temp.first.second
                     index = RainyMemory::find(nowNode.childNode, nowNode.childNode + nowNode.keyNumber + 1, temp.nowNodeOffset) - nowNode.childNode;
                     temp.nowNodeOffset = nowNode.offset;
-                    temp.sonNodeNeedResize=sonNode.resize(this, nowNode, index);
+                    temp.sonNodeNeedResize = sonNode.resize(this, nowNode, index);
                     return temp;
                 }
             }

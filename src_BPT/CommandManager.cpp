@@ -32,9 +32,8 @@ LRUCacheMemoryPool<UserAccount, BasicData> UserManager(USER_DATA_FILENAME, 10000
 //commandFunction:-----\/
 
 void initialize() {
-    fstream fs;
-    fs.open(LOG_FILENAME, ios::in);
-    if (!fs) {
+    fstream fs(LOG_FILENAME, ios::in);
+    if (fs.fail()) {
         fs.clear();
         fs.close();
         
@@ -122,8 +121,8 @@ void argumentCheck(const string &argument, const string &argumentNameStr, comman
 
 void runCommand(const string &cmd) {
     TokenScanner ss(cmd);
-    string cmdType;
-    string remains;
+    string cmdType {};
+    string remains {};
     ss >> cmdType;
     if (cmdType.empty()) {
         //do nothing...
