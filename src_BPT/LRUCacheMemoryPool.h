@@ -13,6 +13,8 @@ using std::string;
 using std::fstream;
 using std::ios;
 
+#define lrucache
+
 namespace RainyMemory {
     template<class T, class extraMessage>
     class LRUCacheMemoryPool {
@@ -207,29 +209,41 @@ namespace RainyMemory {
         }
         
         T read(int offset) {
-//            T temp = existInCache(offset) ? *hashmap[offset]->value : readInFile(offset);
-//            putInCache(offset, temp);
-//            return temp;
+#ifdef lrucache
+            T temp = existInCache(offset) ? *hashmap[offset]->value : readInFile(offset);
+            putInCache(offset, temp);
+            return temp;
+#else
             return readInFile(offset);
+#endif
         }
         
         int write(const T &o) {
-//            int offset = writeInFile(o);
-//            putInCache(offset, o);
-//            return offset;
+#ifdef lrucache
+            int offset = writeInFile(o);
+            putInCache(offset, o);
+            return offset;
+#else
             return writeInFile(o);
+#endif
         }
         
         void update(const T &o, int offset) {
-//            hashmap[offset]->dirtyBit = true;
-//            putInCache(offset, o);
+#ifdef lrucache
+            hashmap[offset]->dirtyBit = true;
+            putInCache(offset, o);
+#else
             updateInFile(offset, o);
+#endif
         }
         
         void erase(int offset) {
-//            if (existInCache(offset))eraseInCache(offset);
-//            eraseInFile(offset);
+#ifdef lrucache
+            if (existInCache(offset))eraseInCache(offset);
             eraseInFile(offset);
+#else
+            eraseInFile(offset);
+#endif
         }
         
         extraMessage readExtraMessage() {
