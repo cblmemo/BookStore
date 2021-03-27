@@ -230,6 +230,7 @@ namespace RainyMemory {
         
         void update(const T &o, int offset) {
 #ifdef lrucache
+            if(!existInCache(offset))throw 1;
             hashmap[offset]->dirtyBit = true;
             putInCache(offset, o);
 #else
