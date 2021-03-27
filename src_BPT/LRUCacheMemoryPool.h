@@ -207,24 +207,28 @@ namespace RainyMemory {
         }
         
         T read(int offset) {
-            T temp = existInCache(offset) ? *hashmap[offset]->value : readInFile(offset);
-            putInCache(offset, temp);
-            return temp;
+//            T temp = existInCache(offset) ? *hashmap[offset]->value : readInFile(offset);
+//            putInCache(offset, temp);
+//            return temp;
+            return readInFile(offset);
         }
         
         int write(const T &o) {
-            int offset = writeInFile(o);
-            putInCache(offset, o);
-            return offset;
+//            int offset = writeInFile(o);
+//            putInCache(offset, o);
+//            return offset;
+            return writeInFile(o);
         }
         
         void update(const T &o, int offset) {
-            hashmap[offset]->dirtyBit = true;
-            putInCache(offset, o);
+//            hashmap[offset]->dirtyBit = true;
+//            putInCache(offset, o);
+            updateInFile(offset, o);
         }
         
         void erase(int offset) {
-            if (existInCache(offset))eraseInCache(offset);
+//            if (existInCache(offset))eraseInCache(offset);
+//            eraseInFile(offset);
             eraseInFile(offset);
         }
         
