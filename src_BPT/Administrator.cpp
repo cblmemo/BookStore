@@ -8,8 +8,8 @@
 
 void Administrator::runProgramme() {
     ios::sync_with_stdio(false);
-    cin.tie(nullptr);
-    cout.tie(nullptr);
+//    cin.tie(nullptr);
+//    cout.tie(nullptr);
     initialize();
     string cmd;
     while (getline(cin, cmd)) {
