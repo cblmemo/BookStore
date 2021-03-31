@@ -8,24 +8,19 @@
 //NOTE: class key need to overload operator= and operator< to support assignment and sort
 //THIS VERSION DOES NOT SUPPORT REPEATED KEY!!!
 
-#include "MemoryPool.h"
-
+#include "LRUCacheMemoryPool.h"
+#include "algorithm.h"
 #include <iostream>
-#include <vector>
-#include <algorithm>
 
 using std::cerr;
 using std::cout;
 using std::endl;
-using std::pair;
-using std::vector;
-using std::upper_bound;
-using std::lower_bound;
 
-using RainyMemory::MemoryPool;
+using RainyMemory::upper_bound;
+using RainyMemory::lower_bound;
+using RainyMemory::LRUCacheMemoryPool;
 
 //#define debug
-#define bptIterator
 
 namespace RainyMemory {
     template<class key, class data, int M = 200, int L = 200, data failedSignal = -1>
@@ -66,8 +61,8 @@ namespace RainyMemory {
         };
     
     private:
-        MemoryPool<leafNode, basicInfo> *leafPool;
-        MemoryPool<internalNode, basicInfo> *internalPool;
+        LRUCacheMemoryPool<leafNode, basicInfo> *leafPool;
+        LRUCacheMemoryPool<internalNode, basicInfo> *internalPool;
         basicInfo info;
     
     private:
@@ -656,8 +651,8 @@ namespace RainyMemory {
     
     public:
         explicit BPlusTree(const string &name) {
-            leafPool = new MemoryPool<leafNode, basicInfo>("leaf_" + name + ".dat");
-            internalPool = new MemoryPool<internalNode, basicInfo>("internal_" + name + ".dat");
+            leafPool = new LRUCacheMemoryPool<leafNode, basicInfo>("leaf_" + name + ".dat");
+            internalPool = new LRUCacheMemoryPool<internalNode, basicInfo>("internal_" + name + ".dat");
             info = leafPool->readExtraMessage();
         }
         
@@ -759,81 +754,15 @@ namespace RainyMemory {
             return find(o);
         }
         
-        void traversal(vector<data> &result) {
-            if (info.head == -1)return;
-            int cur = info.head;
-            while (cur >= 0) {
-                leafNode nowNode = leafPool->read(cur);
-                for (int i = 0; i < nowNode.dataNumber; i++)result.push_back(nowNode.leafData[i]);
-                cur = nowNode.rightBrother;
-            }
-        }
-
-#ifdef bptIterator
-    
-    public:
-        class iterator {
-        private:
-            friend class BPlusTree;
-        
-        private:
-            const BPlusTree<key, data, M, L, failedSignal> *tree;
-            leafNode nowNode;
-            int index;
-        
-        public:
-            iterator(const iterator &o) : tree(o.tree), nowNode(o.nowNode), index(o.index) {}
-            
-            iterator(const BPlusTree<key, data, M, L, failedSignal> *_tree, int nowNodeOffset, int _index) : tree(_tree), index(_index) {
-                nowNode = tree->leafPool->read(nowNodeOffset);
-            }
-            
-            iterator(const BPlusTree<key, data, M, L, failedSignal> *_tree, const leafNode &_nowNode, int _index) : tree(_tree), nowNode(_nowNode), index(_index) {}
-            
-            data &operator*() {
-                return nowNode.leafData[index];
-            }
-            
-            bool operator!=(const iterator &o) const {
-                if (nowNode.offset != o.nowNode.offset)return true;
-                return index != o.index;
-            }
-            
-            iterator &operator++() {
-                if (index == nowNode.dataNumber - 1) {
-                    index = 0;
-                    nowNode = tree->leafPool->read(nowNode.rightBrother);
-                }
-                else index++;
-                return *this;
-            }
-            
-            iterator operator++(int) {
-                iterator temp(*this);
-                if (index == nowNode.dataNumber - 1) {
-                    index = 0;
-                    nowNode = tree->leafPool->read(nowNode.rightBrother);
-                }
-                else index++;
-                return temp;
-            }
-        };
-        
-        iterator begin() const {
-            return iterator(this, info.head, 0);
-        }
-        
-        iterator end() const {
-            int cur = info.head;
-            leafNode tempNode = leafPool->read(cur);
-            while (tempNode.rightBrother >= 0) {
-                cur = tempNode.rightBrother;
-                tempNode = leafPool->read(cur);
-            }
-            return iterator(this, tempNode, tempNode.dataNumber);
-        }
-
-#endif
+//        void traversal(vector<data> &result) {
+//            if (info.head == -1)return;
+//            int cur = info.head;
+//            while (cur >= 0) {
+//                leafNode nowNode = leafPool->read(cur);
+//                for (int i = 0; i < nowNode.dataNumber; i++)result.push_back(nowNode.leafData[i]);
+//                cur = nowNode.rightBrother;
+//            }
+//        }
 
 #ifdef debug
         private:
