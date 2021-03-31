@@ -10,13 +10,13 @@
 
 #include <iomanip>
 #include <sstream>
-#include <algorithm>
+//#include <algorithm>
 #include <ctime>
 
 using std::stringstream;
 using std::cin;
 using std::sort;
-using std::find;
+//using std::find;
 using std::setiosflags;
 using std::setprecision;
 

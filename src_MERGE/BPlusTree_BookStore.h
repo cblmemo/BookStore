@@ -33,12 +33,6 @@ public:
         BPlusTreeString temp(tt);
         bpt.erase(temp);
     }
-    
-    void traverse(vector<int> &result){
-        for(auto i:bpt){
-            result.push_back(i);
-        }
-    }
 };
 
 #endif //CODE_BPLUSTREE_BOOKSTORE_H

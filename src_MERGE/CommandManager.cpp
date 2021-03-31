@@ -3,6 +3,7 @@
 //
 
 #include "BookStoreHeader.h"
+#include <algorithm>
 
 //#define debug
 //#define showLogContent
