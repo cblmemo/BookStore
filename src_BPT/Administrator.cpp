@@ -7,7 +7,7 @@
 //#define log
 
 void Administrator::runProgramme() {
-//    ios::sync_with_stdio(false);
+    ios::sync_with_stdio(false);
 //    cin.tie(nullptr);
 //    cout.tie(nullptr);
     initialize();
