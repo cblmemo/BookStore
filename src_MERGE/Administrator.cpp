@@ -5,6 +5,7 @@
 #include "Administrator.h"
 
 void Administrator::runProgramme() {
+    ios::sync_with_stdio(false);
     initialize();
     string cmd;
     while (getline(cin, cmd)) {
