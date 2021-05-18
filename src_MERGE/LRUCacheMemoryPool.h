@@ -2,10 +2,10 @@
 // Created by Rainy Memory on 2021/3/18.
 //
 
-#ifndef CODE_LRUCACHEMEMORYPOOL_H
-#define CODE_LRUCACHEMEMORYPOOL_H
+#ifndef TICKETSYSTEM_AUTOMATA_LRUCACHEMEMORYPOOL_H
+#define TICKETSYSTEM_AUTOMATA_LRUCACHEMEMORYPOOL_H
 
-#include <string>
+#include <iostream>
 #include <fstream>
 #include "HashMap.h"
 
@@ -14,8 +14,19 @@ using std::fstream;
 using std::ios;
 
 namespace RainyMemory {
-    template<class T, class extraMessage>
+    template<class T, class extraMessage = int>
     class LRUCacheMemoryPool {
+        /*
+         * class LRUCacheMemoryPool
+         * --------------------------------------------------------
+         * A class implements memory pool which has built-in cache
+         * strategy to storage and quick access data.
+         * This class offer single type data's storage, update and
+         * delete in file, and LRU Cache to accelerate accession.
+         * ALso, this class support deleted data's space reclamation,
+         * and an extra (not same type of stored data) message storage.
+         *
+         */
     private:
         class DoublyLinkedList {
         public:
@@ -55,6 +66,18 @@ namespace RainyMemory {
                 }
             }
             
+            void clear() {
+                listSize = 0;
+                Node *temp = head;
+                while (head != nullptr) {
+                    head = head->next;
+                    delete temp;
+                    temp = head;
+                }
+                head = new Node(), tail = new Node();
+                head->next = tail, tail->pre = head;
+            }
+            
             void push_front(Node *n) {
                 head->next->pre = n;
                 n->next = head->next;
@@ -89,13 +112,15 @@ namespace RainyMemory {
                 return listSize == capacity;
             }
         };
+        
+        using node_t = typename DoublyLinkedList::Node;
     
     private:
         int writePoint;
         const string filename;
-        fstream fin, fout;
+        FILE *file;
         
-        HashMap<int, typename DoublyLinkedList::Node *> hashmap;
+        HashMap<int, node_t *> hashmap;
         DoublyLinkedList cache;
         
         bool existInCache(int key) {
@@ -103,7 +128,7 @@ namespace RainyMemory {
         }
         
         void discardLRU() {
-            typename DoublyLinkedList::Node *target = cache.pop_back();
+            node_t *target = cache.pop_back();
             hashmap.erase(target->key);
             if (target->dirtyBit)updateInFile(target->key, *target->value);
             delete target;
@@ -120,7 +145,7 @@ namespace RainyMemory {
                 *hashmap[key]->value = o;
                 return;
             }
-            auto newNode = new typename DoublyLinkedList::Node(key, o);
+            auto newNode = new node_t(key, o);
             if (cache.full())discardLRU();
             cache.push_front(newNode);
             hashmap[key] = newNode;
@@ -128,78 +153,74 @@ namespace RainyMemory {
         
         int writeInFile(const T &o) {
             int offset;
-            fin.open(filename, ios::in | ios::binary);
-            fout.open(filename, ios::in | ios::out | ios::binary);
+            file = fopen(filename.c_str(), "rb+");
             if (writePoint < 0) {
-                fout.seekp(0, ios::end);
-                offset = fout.tellp();
+                fseek(file, 0, SEEK_END);
+                offset = ftell(file);
             }
             else {
                 offset = writePoint;
-                fin.seekg(writePoint);
-                fin.read(reinterpret_cast<char *>(&writePoint), sizeof(int));
-                fout.seekp(sizeof(extraMessage));
-                fout.write(reinterpret_cast<const char *>(&writePoint), sizeof(int));
-                fout.seekp(offset);
+                fseek(file, writePoint, SEEK_SET);
+                fread(reinterpret_cast<char *>(&writePoint), sizeof(int), 1, file);
+                fseek(file, sizeof(extraMessage), SEEK_SET);
+                fwrite(reinterpret_cast<const char *>(&writePoint), sizeof(int), 1, file);
+                fseek(file, offset, SEEK_SET);
             }
-            fout.write(reinterpret_cast<const char *>(&o), sizeof(T));
-            fin.close();
-            fout.close();
+            fwrite(reinterpret_cast<const char *>(&o), sizeof(T), 1, file);
+            fclose(file);
             return offset;
         }
         
         T readInFile(int offset) {
-            fin.open(filename, ios::in | ios::binary);
+            file = fopen(filename.c_str(), "rb");
             T temp;
-            fin.seekg(offset);
-            fin.read(reinterpret_cast<char *>(&temp), sizeof(T));
-            fin.close();
+            fseek(file, offset, SEEK_SET);
+            fread(reinterpret_cast<char *>(&temp), sizeof(T), 1, file);
+            fclose(file);
             return temp;
         }
         
         void updateInFile(int offset, const T &o) {
-            fout.open(filename, ios::in | ios::out | ios::binary);
-            fout.seekp(offset);
-            fout.write(reinterpret_cast<const char *>(&o), sizeof(T));
-            fout.close();
+            file = fopen(filename.c_str(), "rb+");
+            fseek(file, offset, SEEK_SET);
+            fwrite(reinterpret_cast<const char *>(&o), sizeof(T), 1, file);
+            fclose(file);
         }
         
         void eraseInFile(int offset) {
-            fout.open(filename, ios::in | ios::out | ios::binary);
-            fout.seekp(offset);
-            fout.write(reinterpret_cast<const char *>(&writePoint), sizeof(int));
+            file = fopen(filename.c_str(), "rb+");
+            fseek(file, offset, SEEK_SET);
+            fwrite(reinterpret_cast<const char *>(&writePoint), sizeof(int), 1, file);
             writePoint = offset;
-            fout.seekp(sizeof(extraMessage));
-            fout.write(reinterpret_cast<const char *>(&writePoint), sizeof(int));
-            fout.close();
+            fseek(file, sizeof(extraMessage), SEEK_SET);
+            fwrite(reinterpret_cast<const char *>(&writePoint), sizeof(int), 1, file);
+            fclose(file);
         }
     
     public:
-        explicit LRUCacheMemoryPool(const string &_filename, int _capacity = 100) : filename(_filename), cache(_capacity), hashmap(_capacity) {
-            fin.open(filename, ios::in);
-            if (fin.fail()) {
-                fin.clear();
-                fin.close();
-                fout.open(filename, ios::out | ios::binary);
-                fout.close();
+        explicit LRUCacheMemoryPool(const string &_filename, const extraMessage &ex = extraMessage {}, int _capacity = 100) : filename(_filename), cache(_capacity), hashmap() {
+            file = fopen(filename.c_str(), "rb");
+            if (file == NULL) {
+                file = fopen(filename.c_str(), "wb+");
+                fclose(file);
                 writePoint = -1;
-                extraMessage temp;
-                fout.open(filename, ios::in | ios::out | ios::binary);
-                fout.seekp(0);
-                fout.write(reinterpret_cast<const char *>(&temp), sizeof(extraMessage));
-                fout.seekp(sizeof(extraMessage));
-                fout.write(reinterpret_cast<const char *>(&writePoint), sizeof(int));
-                fout.close();
+                extraMessage temp(ex);
+                file = fopen(filename.c_str(), "rb+");
+                fseek(file, 0, SEEK_SET);
+                fwrite(reinterpret_cast<const char *>(&temp), sizeof(extraMessage), 1, file);
+                fseek(file, sizeof(extraMessage), SEEK_SET);
+                fwrite(reinterpret_cast<const char *>(&writePoint), sizeof(int), 1, file);
+                fclose(file);
             }
             else {
-                fin.seekg(sizeof(extraMessage));
-                fin.read(reinterpret_cast<char *>(&writePoint), sizeof(int));
-                fin.close();
+                fseek(file, sizeof(extraMessage), SEEK_SET);
+                fread(reinterpret_cast<char *>(&writePoint), sizeof(int), 1, file);
+                fclose(file);
             }
         }
         
         ~LRUCacheMemoryPool() {
-            typename DoublyLinkedList::Node *now = cache.head->next;
+            node_t *now = cache.head->next;
             while (now != cache.tail) {
                 if (now->dirtyBit)updateInFile(now->key, *now->value);
                 now = now->next;
@@ -219,8 +240,8 @@ namespace RainyMemory {
         }
         
         void update(const T &o, int offset) {
-            hashmap[offset]->dirtyBit = true;
             putInCache(offset, o);
+            hashmap[offset]->dirtyBit = true;
         }
         
         void erase(int offset) {
@@ -228,33 +249,48 @@ namespace RainyMemory {
             eraseInFile(offset);
         }
         
+        void clear(extraMessage ex = extraMessage {}) {
+            hashmap.clear();
+            cache.clear();
+            file = fopen(filename.c_str(), "wb+");
+            fclose(file);
+            writePoint = -1;
+            extraMessage temp(ex);
+            file = fopen(filename.c_str(), "rb+");
+            fseek(file, 0, SEEK_SET);
+            fwrite(reinterpret_cast<const char *>(&temp), sizeof(extraMessage), 1, file);
+            fseek(file, sizeof(extraMessage), SEEK_SET);
+            fwrite(reinterpret_cast<const char *>(&writePoint), sizeof(int), 1, file);
+            fclose(file);
+        }
+        
         extraMessage readExtraMessage() {
-            fin.open(filename, ios::in | ios::binary);
+            file = fopen(filename.c_str(), "rb+");
+            fseek(file, 0, SEEK_SET);
             extraMessage temp;
-            fin.seekg(0);
-            fin.read(reinterpret_cast<char *>(&temp), sizeof(extraMessage));
-            fin.close();
+            fread(reinterpret_cast<char *>(&temp), sizeof(extraMessage), 1, file);
+            fclose(file);
             return temp;
         }
         
         void updateExtraMessage(const extraMessage &o) {
-            fout.open(filename, ios::in | ios::out | ios::binary);
-            fout.seekp(0);
-            fout.write(reinterpret_cast<const char *>(&o), sizeof(extraMessage));
-            fout.close();
+            file = fopen(filename.c_str(), "rb+");
+            fseek(file, 0, SEEK_SET);
+            fwrite(reinterpret_cast<const char *>(&o), sizeof(extraMessage), 1, file);
+            fclose(file);
         }
         
         int tellWritePoint() {
             if (writePoint >= 0)return writePoint;
             else {
-                fout.open(filename, ios::in | ios::out | ios::binary);
-                fout.seekp(0, ios::end);
-                int tempWritePoint = fout.tellp();
-                fout.close();
+                file = fopen(filename.c_str(), "rb+");
+                fseek(file, 0, SEEK_END);
+                int tempWritePoint = ftell(file);
+                fclose(file);
                 return tempWritePoint;
             }
         }
     };
 }
 
-#endif //CODE_LRUCACHEMEMORYPOOL_H
+#endif //TICKETSYSTEM_AUTOMATA_LRUCACHEMEMORYPOOL_H

@@ -18,8 +18,8 @@ public:
     
     void findElement(const string &key, vector<int> &result) {
         BPlusTreeString temp(key);
-        int res = bpt.find(temp);
-        if (res >= 0)result.push_back(res);
+        std::pair<int, bool> res = bpt.find(temp);
+        if (res.second)result.push_back(res.first);
     }
     
     void addElement(const Element &o) {
